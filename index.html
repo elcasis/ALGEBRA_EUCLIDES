@@ -1,2152 +1,3377 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>El Laberinto de Euler y Fermat - Juego de Aritmética Modular</title>
-  <!-- Google Fonts para una tipografía premium -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
-  
-  <style>
-    /* VARIABLES CSS - DISEÑO "BLACK" CON ACENTOS CIAN Y ORO */
-    :root {
-      --bg-color: #000000;
-      --card-bg: #0c0c0f;
-      --card-border: #1a2238;
-      --euler-color: #00ffff; /* Cian */
-      --fermat-color: #ffd700; /* Oro */
-      --accent-color: #00ffff;
-      --text-primary: #ffffff;
-      --text-secondary: #8e9bb0;
-      --success-color: #39ff14; /* Verde Neón */
-      --error-color: #ff073a; /* Rojo Neón */
-      --font-base: 16px;
-      --button-bg: #111216;
-      --shadow-color: rgba(0, 255, 255, 0.1);
-    }
-
-    /* CLASE DE ALTO CONTRASTE EXTREMO */
-    body.high-contrast {
-      --bg-color: #000000;
-      --card-bg: #000000;
-      --card-border: #ffffff;
-      --euler-color: #ffffff;
-      --fermat-color: #ffffff;
-      --accent-color: #ffffff;
-      --text-primary: #ffffff;
-      --text-secondary: #ffffff;
-      --success-color: #00ff00;
-      --error-color: #ff0000;
-      --button-bg: #000000;
-      --shadow-color: transparent;
-    }
-
-    /* ESTILOS GLOBALES */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-primary);
-      font-family: 'Outfit', sans-serif;
-      font-size: var(--font-base);
-      line-height: 1.5;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* BARRA DE ACCESIBILIDAD SUPERIOR */
-    .accessibility-bar {
-      width: 100%;
-      background-color: #050507;
-      border-bottom: 1px solid var(--card-border);
-      padding: 8px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .accessibility-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--euler-color);
-      letter-spacing: 1px;
-    }
-
-    .acc-buttons {
-      display: flex;
-      gap: 8px;
-    }
-
-    .acc-btn {
-      background: var(--button-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-primary);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      min-height: 38px;
-    }
-
-    .acc-btn:active {
-      background-color: var(--accent-color);
-      color: #000000;
-    }
-
-    /* CONTENEDOR PRINCIPAL */
-    main {
-      flex: 1;
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    /* TARJETAS DEL JUEGO */
-    .card {
-      background-color: var(--card-bg);
-      border: 2px solid var(--card-border);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 24px var(--shadow-color);
-      display: none;
-      flex-direction: column;
-      animation: slideIn 0.35s cubic-bezier(0.1, 0.8, 0.2, 1);
-    }
-
-    .card.active {
-      display: flex;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* HEADER INTERNO */
-    .game-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      font-size: 0.9rem;
-      border-bottom: 1px dashed var(--card-border);
-      padding-bottom: 10px;
-    }
-
-    .game-stats {
-      display: flex;
-      gap: 15px;
-      font-weight: 600;
-    }
-
-    .stat-lives {
-      color: #ff3366;
-    }
-
-    .stat-score {
-      color: var(--euler-color);
-    }
-
-    /* CONTENEDOR DE LA EXPRESIÓN MATEMÁTICA PRINCIPAL */
-    .math-display-container {
-      width: 100%;
-      background: #040406;
-      border: 1px solid #1a1a24;
-      border-radius: 10px;
-      padding: 20px;
-      margin: 15px 0;
-      text-align: center;
-      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
-    }
-
-    .math-expression {
-      font-family: 'Space Grotesk', monospace;
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: 1px;
-    }
-
-    .math-expression span.base {
-      color: var(--euler-color);
-    }
-
-    .math-expression span.exp {
-      font-size: 1.3rem;
-      vertical-align: super;
-      color: var(--fermat-color);
-      margin-left: 2px;
-    }
-
-    .math-expression span.mod {
-      font-size: 1.4rem;
-      color: #8c8c94;
-    }
-
-    /* INDICADORES DE FASE INTERNA DEL EJERCICIO */
-    .phase-indicator-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 15px;
-      background-color: rgba(26, 34, 56, 0.4);
-      border-radius: 20px;
-      padding: 4px;
-    }
-
-    .phase-step {
-      flex: 1;
-      text-align: center;
-      padding: 6px 4px;
-      font-size: 0.75rem;
-      font-weight: bold;
-      color: var(--text-secondary);
-      border-radius: 15px;
-      transition: all 0.2s;
-    }
-
-    .phase-step.active {
-      background-color: var(--accent-color);
-      color: #000000;
-    }
-
-    .phase-step.passed {
-      color: var(--success-color);
-    }
-
-    /* PREGUNTAS Y TEXTOS */
-    .step-title {
-      font-size: 0.9rem;
-      color: var(--accent-color);
-      text-transform: uppercase;
-      font-weight: bold;
-      letter-spacing: 1px;
-      margin-bottom: 5px;
-    }
-
-    .question-text {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-      color: var(--text-primary);
-    }
-
-    /* BOTONES DE OPCIÓN MÚLTIPLE */
-    .options-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-    }
-
-    .option-btn {
-      background-color: var(--button-bg);
-      border: 2px solid var(--card-border);
-      color: var(--text-primary);
-      padding: 14px 18px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      text-align: left;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      min-height: 52px;
-      display: flex;
-      align-items: center;
-    }
-
-    .option-btn:active {
-      transform: scale(0.98);
-      background-color: rgba(0, 255, 255, 0.05);
-    }
-
-    .option-btn.selected {
-      border-color: var(--accent-color);
-      background-color: rgba(0, 255, 255, 0.1);
-    }
-
-    .option-btn.correct-choice {
-      border-color: var(--success-color) !important;
-      background-color: rgba(57, 255, 20, 0.1) !important;
-    }
-
-    .option-btn.error-choice {
-      border-color: var(--error-color) !important;
-      background-color: rgba(255, 7, 58, 0.1) !important;
-    }
-
-    /* FEEDBACK */
-    .feedback-box {
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 8px;
-      display: none;
-      font-size: 0.95rem;
-      animation: fadeIn 0.3s;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .feedback-box.correct {
-      display: block;
-      border: 1px solid var(--success-color);
-      background-color: rgba(57, 255, 20, 0.05);
-    }
-
-    .feedback-box.incorrect {
-      display: block;
-      border: 1px solid var(--error-color);
-      background-color: rgba(255, 7, 58, 0.05);
-    }
-
-    .feedback-title {
-      font-weight: 800;
-      margin-bottom: 5px;
-      font-size: 1.05rem;
-    }
-
-    .feedback-title.correct {
-      color: var(--success-color);
-    }
-
-    .feedback-title.incorrect {
-      color: var(--error-color);
-    }
-
-    .feedback-explanation {
-      color: var(--text-primary);
-    }
-
-    .next-btn {
-      background-color: var(--accent-color);
-      color: #000000;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 15px;
-      width: 100%;
-      text-align: center;
-      display: none;
-      min-height: 50px;
-    }
-
-    /* PANTALLA BIENVENIDA */
-    .welcome-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--euler-color);
-      text-align: center;
-      line-height: 1.1;
-      margin-bottom: 10px;
-      letter-spacing: 1px;
-    }
-
-    .welcome-subtitle {
-      font-size: 1.1rem;
-      color: var(--text-secondary);
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .intro-text {
-      margin-bottom: 25px;
-      font-size: 0.95rem;
-      text-align: justify;
-    }
-
-    .intro-list {
-      margin: 15px 0;
-      padding-left: 20px;
-    }
-
-    .intro-list li {
-      margin-bottom: 8px;
-    }
-
-    .start-btn {
-      background-color: var(--euler-color);
-      color: #000000;
-      font-size: 1.2rem;
-      font-weight: 800;
-      padding: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-      text-align: center;
-      transition: transform 0.2s;
-    }
-
-    .start-btn:active {
-      transform: scale(0.98);
-    }
-
-    /* SELECTOR MÓDULOS */
-    .modules-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin: 20px 0;
-    }
-
-    .module-card {
-      background-color: var(--button-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s;
-    }
-
-    .module-card.locked {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .module-card:not(.locked):active {
-      background-color: rgba(0, 255, 255, 0.05);
-      transform: translateX(4px);
-    }
-
-    .module-info {
-      flex: 1;
-    }
-
-    .module-num {
-      font-size: 0.8rem;
-      font-weight: bold;
-      color: var(--fermat-color);
-      text-transform: uppercase;
-    }
-
-    .module-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin: 2px 0;
-    }
-
-    .module-status {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-    }
-
-    .module-icon {
-      font-size: 1.5rem;
-      margin-left: 10px;
-    }
-
-    /* DIPLOMA */
-    .diploma-box {
-      border: 3px double var(--euler-color);
-      padding: 25px;
-      border-radius: 8px;
-      text-align: center;
-      background: #050508;
-      margin: 20px 0;
-    }
-
-    .diploma-header {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--fermat-color);
-      margin-bottom: 10px;
-    }
-
-    .diploma-title {
-      font-size: 1.5rem;
-      font-weight: 800;
-      margin-bottom: 20px;
-    }
-
-    .diploma-name {
-      font-size: 1.4rem;
-      font-style: italic;
-      color: #ffffff;
-      border-bottom: 1px solid var(--euler-color);
-      display: inline-block;
-      min-width: 200px;
-      margin-bottom: 20px;
-      padding: 5px;
-    }
-
-    .diploma-text {
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-
-    .diploma-score {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--euler-color);
-      margin-top: 15px;
-    }
-
-    .name-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .name-input {
-      background: #000;
-      border: 1px solid var(--card-border);
-      color: #fff;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      border-top: 1px solid #0c0c10;
-      width: 100%;
-      margin-top: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Euclides - Juego del Algoritmo de Euclides</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --accent-color: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.3);
+            --accent-light: #a78bfa;
+            --success-color: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.2);
+            --error-color: #ef4444;
+            --error-glow: rgba(239, 68, 68, 0.2);
+            --card-bg: #0a0a0a;
+            --card-border: #1f1f1f;
+            --base-font-size: 16px;
+            --slot-bg: #0f0c1b;
+            --btn-bg: #121212;
+            --btn-border: #222222;
+        }
+
+        body.contrast-extreme {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --accent-color: #ffffff;
+            --accent-glow: none;
+            --accent-light: #ffffff;
+            --success-color: #ffffff;
+            --success-glow: none;
+            --error-color: #ffffff;
+            --error-glow: none;
+            --card-bg: #000000;
+            --card-border: #ffffff;
+            --slot-bg: #000000;
+            --btn-bg: #000000;
+            --btn-border: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: var(--base-font-size);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding-bottom: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Container & Layout */
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex-grow: 1;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body.contrast-extreme header h1 {
+            background: none;
+            -webkit-background-clip: initial;
+            -webkit-text-fill-color: initial;
+            color: #ffffff;
+        }
+
+        /* Controls Panel */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .font-sizer {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.2rem;
+            border-radius: 8px;
+        }
+
+        .font-btn {
+            background: transparent;
+            border: none;
+            color: #888888;
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .font-btn.active {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
+        body.contrast-extreme .font-btn.active {
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #000000;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-icon-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-color);
+            padding: 0.4rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .action-icon-btn.active {
+            border-color: var(--accent-color);
+            background: var(--accent-glow);
+        }
+        body.contrast-extreme .action-icon-btn.active {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        /* Stats Panel */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        body.contrast-extreme .stats-bar {
+            box-shadow: none;
+            border-width: 2px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .stat-val {
+            font-weight: 700;
+            color: var(--accent-light);
+            font-size: 1.1rem;
+        }
+        body.contrast-extreme .stat-val {
+            color: #ffffff;
+        }
+
+        /* Progress Tracker */
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #888888;
+        }
+        .progress-bar-bg {
+            background: var(--card-border);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            width: 100%;
+        }
+        body.contrast-extreme .progress-bar-bg {
+            border: 1px solid #ffffff;
+            background: #000000;
+        }
+        .progress-bar-fill {
+            background: var(--accent-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        body.contrast-extreme .progress-bar-fill {
+            background: #ffffff;
+        }
+
+        /* Exercise Statement Card */
+        .exercise-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+        body.contrast-extreme .exercise-card {
+            box-shadow: none;
+            border-width: 2px;
+        }
+
+        .exercise-title {
+            font-size: 0.95rem;
+            color: #888888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .exercise-statement {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .exercise-formula {
+            background: #050505;
+            border: 1px dashed var(--card-border);
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.25rem;
+            color: var(--accent-light);
+        }
+        body.contrast-extreme .exercise-formula {
+            border-style: solid;
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+
+        /* Phase tabs */
+        .phase-tabs {
+            display: flex;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            overflow: hidden;
+            padding: 0.2rem;
+        }
+        body.contrast-extreme .phase-tabs {
+            border-width: 2px;
+        }
+
+        .phase-tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #555555;
+            text-transform: uppercase;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .phase-tab.active {
+            background: var(--btn-border);
+            color: var(--text-color);
+        }
+        .phase-tab.completed {
+            color: var(--success-color);
+        }
+        body.contrast-extreme .phase-tab.active {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        /* Game Board (Inputs Area) */
+        .game-board {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            min-height: 250px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+        body.contrast-extreme .game-board {
+            box-shadow: none;
+            border-width: 2px;
+        }
+
+        .phase-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .equation-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.2rem;
+            padding: 0.6rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .equation-row.active {
+            opacity: 1;
+            pointer-events: auto;
+            background: #050505;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+        body.contrast-extreme .equation-row.active {
+            border: 1px solid #ffffff;
+        }
+        .equation-row.locked {
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        /* Interactive Slots */
+        .slot {
+            display: inline-block;
+            min-width: 2.8rem;
+            height: 2.2rem;
+            border-bottom: 2px solid var(--accent-color);
+            background: var(--slot-bg);
+            border-radius: 4px 4px 0 0;
+            text-align: center;
+            line-height: 2.2rem;
+            font-weight: 700;
+            color: var(--accent-light);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            position: relative;
+            padding: 0 0.2rem;
+        }
+        .slot::before {
+            content: attr(data-placeholder);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            color: #444444;
+            font-weight: 400;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .slot.filled::before {
+            opacity: 0;
+        }
+        .slot.active {
+            background: rgba(139, 92, 246, 0.1);
+            border-bottom-color: #c084fc;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+        body.contrast-extreme .slot {
+            border-bottom-width: 2px;
+            border-bottom-color: #ffffff;
+        }
+        body.contrast-extreme .slot.active {
+            background: #ffffff;
+            color: #000000;
+            box-shadow: none;
+        }
+
+        .slot.correct {
+            color: var(--success-color) !important;
+            border-bottom-color: var(--success-color) !important;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: none;
+            cursor: default;
+        }
+        body.contrast-extreme .slot.correct {
+            border: 2px solid #ffffff;
+            color: #ffffff !important;
+            background: transparent;
+        }
+
+        .slot.incorrect {
+            color: var(--error-color) !important;
+            border-bottom-color: var(--error-color) !important;
+            background: rgba(239, 68, 68, 0.08);
+            box-shadow: 0 0 8px var(--error-glow);
+            animation: shake 0.3s;
+        }
+        body.contrast-extreme .slot.incorrect {
+            border: 2px dashed #ffffff;
+            color: #ffffff !important;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .text-symbol {
+            user-select: none;
+            font-size: 1rem;
+            color: #777777;
+        }
+        body.contrast-extreme .text-symbol {
+            color: #ffffff;
+        }
+
+        /* Highlight box for MCD conclusion */
+        .mcd-conclusion {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--card-border);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.3rem;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .mcd-conclusion.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Keyboard Panel / Button Pool */
+        .keyboard-area {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .keyboard-label {
+            font-size: 0.85rem;
+            color: #888888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+
+        .btn-pool {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+        }
+
+        .num-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-color);
+            padding: 0.75rem 0.2rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        body.contrast-extreme .num-btn {
+            border-width: 2px;
+            box-shadow: none;
+        }
+        .num-btn:active {
+            transform: scale(0.95);
+            background: #262626;
+        }
+        body.contrast-extreme .num-btn:active {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        /* Action Buttons */
+        .actions-area {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 0.85rem;
+            background: var(--accent-color);
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px var(--accent-glow);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        body.contrast-extreme .btn-primary {
+            border: 2px solid #ffffff;
+            background: #000000;
+            color: #ffffff;
+            box-shadow: none;
+        }
+        body.contrast-extreme .btn-primary:active {
+            background: #ffffff;
+            color: #000000;
+        }
+        .btn-primary:disabled {
+            background: #141414;
+            color: #444444;
+            cursor: not-allowed;
+            box-shadow: none;
+            border-color: #222222;
+        }
+        body.contrast-extreme .btn-primary:disabled {
+            border-color: #555555;
+            color: #555555;
+            background: #000000;
+        }
+
+        .btn-secondary {
+            padding: 0.85rem 1rem;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: #888888;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        body.contrast-extreme .btn-secondary {
+            border: 2px solid #ffffff;
+            color: #ffffff;
+        }
+        .btn-secondary:hover {
+            color: #ffffff;
+            border-color: var(--accent-color);
+        }
+
+        /* Modal Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #0a0a0a;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        body.contrast-extreme .modal-content {
+            border-width: 2px;
+            box-shadow: none;
+        }
+        .modal-overlay.open .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-light);
+            text-align: center;
+        }
+        body.contrast-extreme .modal-title {
+            color: #ffffff;
+        }
+
+        .modal-body {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #dddddd;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 0.2rem;
+        }
+        body.contrast-extreme .modal-body {
+            color: #ffffff;
+        }
+
+        .modal-body h3 {
+            color: #ffffff;
+            font-size: 1.05rem;
+            margin-top: 0.4rem;
+        }
+
+        .modal-body ul {
+            padding-left: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 2px;
+        }
+
+        /* Success & Error alerts */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #111111;
+            border: 1px solid var(--accent-color);
+            color: #ffffff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            z-index: 2000;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            text-align: center;
+            white-space: nowrap;
+        }
+        body.contrast-extreme .toast {
+            border-width: 2px;
+            box-shadow: none;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.toast-error {
+            border-color: var(--error-color);
+        }
+
+        /* Help screen list styles */
+        .help-step {
+            background: #070707;
+            border: 1px solid var(--card-border);
+            padding: 0.6rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        body.contrast-extreme .help-step {
+            border-color: #ffffff;
+        }
+
+        /* Animation utilities */
+        .pulse-active {
+            animation: pulse-border 1.5s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-bottom-color: var(--accent-color); }
+            50% { border-bottom-color: var(--accent-light); }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-top">
+                <h1>Euclides</h1>
+                <div class="top-actions">
+                    <button class="action-icon-btn" id="help-trigger" title="Instrucciones">
+                        ❔
+                    </button>
+                    <button class="action-icon-btn" id="sound-toggle" title="Sonido Activo">
+                        🔊
+                    </button>
+                    <button class="action-icon-btn" id="contrast-toggle" title="Contraste Extremo">
+                        🌓
+                    </button>
+                </div>
+            </div>
+            <div class="controls">
+                <span style="font-size: 0.85rem; color: #888888; font-weight:600;">LETRA:</span>
+                <div class="font-sizer">
+                    <button class="font-btn" data-sz="12px">--A</button>
+                    <button class="font-btn" data-sz="14px">-A</button>
+                    <button class="font-btn active" data-sz="16px">A</button>
+                    <button class="font-btn" data-sz="18px">A+</button>
+                    <button class="font-btn" data-sz="21px">A++</button>
+                </div>
+            </div>
+        </header>
 
-  <!-- BARRA DE ACCESIBILIDAD -->
-  <div class="accessibility-bar">
-    <div class="accessibility-title">EULER & FERMAT</div>
-    <div class="acc-buttons">
-      <button class="acc-btn" id="btn-size" title="Cambiar tamaño de letra">A+</button>
-      <button class="acc-btn" id="btn-contrast" title="Alternar alto contraste">CONTRASTE</button>
-      <button class="acc-btn" id="btn-mute" title="Mutear sonidos">🔊</button>
-    </div>
-  </div>
-
-  <!-- MAIN CONTAINER -->
-  <main>
-
-    <!-- 1. BIENVENIDA -->
-    <div id="screen-welcome" class="card active">
-      <h1 class="welcome-title">Euler & Fermat</h1>
-      <div class="welcome-subtitle">Aritmética Modular Interactiva</div>
-
-      <div class="math-display-container">
-        <div class="math-expression">
-          <span class="base">2</span><span class="exp">n</span>
-          <span class="mod">≡ x (mod p)</span>
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span style="color:#888888; font-size:0.75rem; text-transform:uppercase;">Puntos</span>
+                <span class="stat-val" id="score-val">0</span>
+            </div>
+            <div class="stat-item">
+                <span style="color:#888888; font-size:0.75rem; text-transform:uppercase;">Racha</span>
+                <span class="stat-val" id="streak-val">🔥 0</span>
+            </div>
+            <div class="stat-item">
+                <span style="color:#888888; font-size:0.75rem; text-transform:uppercase;">Fallos</span>
+                <span class="stat-val" style="color:#ef4444;" id="errors-val">0</span>
+            </div>
         </div>
-      </div>
 
-      <div class="intro-text">
-        <p>Aprende a resolver potencias modulares de base 2 aplicando el **Teorema de Euler** y el **Pequeño Teorema de Fermat**.</p>
-        <ul class="intro-list">
-          <li><strong>25 Ejercicios Reales</strong>: Resuelve de forma guiada en fases ordenadas.</li>
-          <li><strong>Fases de Resolución</strong>: Identifica la base del teorema, reduce el exponente y calcula el residuo.</li>
-          <li><strong>Módulos Trampa</strong>: Cuidado con los módulos pares (no coprimos con 2) donde Euler no aplica directamente y debes buscar ciclos de recurrencia.</li>
-          <li><strong>Sin Teclado</strong>: Resuelve seleccionando entre las opciones propuestas.</li>
-        </ul>
-      </div>
-
-      <button class="start-btn" id="welcome-start">INICIAR RETO</button>
-    </div>
-
-    <!-- 2. SELECTOR DE MÓDULOS -->
-    <div id="screen-modules" class="card">
-      <h2 style="text-align: center; margin-bottom: 10px; color: var(--euler-color);">RETOS DISPONIBLES</h2>
-      <p style="text-align: center; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">Supera los niveles para desbloquear el laberinto matemático.</p>
-      
-      <div style="display: flex; justify-content: space-around; margin-bottom: 15px; background: #050508; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border);">
-        <div>Vidas: <span id="modules-lives" class="stat-lives">❤️ ❤️ ❤️</span></div>
-        <div>Puntos: <span id="modules-score" class="stat-score">0</span></div>
-      </div>
-
-      <div class="modules-list" id="modules-list-container">
-        <!-- JS inyectará las tarjetas -->
-      </div>
-
-      <button class="acc-btn" id="modules-back-welcome" style="margin-top: 10px; width: 100%;">VOLVER A LA PORTADA</button>
-    </div>
-
-    <!-- 3. GAMEPLAY -->
-    <div id="screen-gameplay" class="card">
-      <div class="game-header">
-        <span id="game-module-title" style="font-weight: 800; color: var(--fermat-color);">MÓDULO 1</span>
-        <div class="game-stats">
-          <span id="game-lives" class="stat-lives">❤️ ❤️ ❤️</span>
-          <span id="game-score" class="stat-score">Ptos: 0</span>
+        <!-- Progress bar -->
+        <div class="progress-container">
+            <div class="progress-header">
+                <span id="progress-label">Ejercicio 1 de 25</span>
+                <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
         </div>
-      </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
-        <span id="game-exercise-num">Ejercicio 1/25</span>
-        <span id="game-phase-label">Paso 1 de 3</span>
-      </div>
-
-      <div class="phase-indicator-bar" id="phase-steps-bar">
-        <div class="phase-step active" id="pstep-0">1. ANÁLISIS</div>
-        <div class="phase-step" id="pstep-1">2. EXPONENTE</div>
-        <div class="phase-step" id="pstep-2">3. CÁLCULO</div>
-      </div>
-
-      <div class="math-display-container">
-        <div class="math-expression" id="game-math-formula">
-          <span class="base">2</span><span class="exp">8</span>
-          <span class="mod">≡ x (mod 3)</span>
+        <!-- Exercise Prompt Card -->
+        <div class="exercise-card">
+            <div class="exercise-title">Enunciado del Ejercicio</div>
+            <div class="exercise-statement" id="exercise-statement-text">
+                Calcula el mcd(A,B) usando el algoritmo de Euclides y aprovecha el método para encontrar s y t enteros tal que s*A + t*B = C.
+            </div>
+            <div class="exercise-formula" id="exercise-formula-equation">
+                s · [A] + t · [B] = C
+            </div>
         </div>
-      </div>
 
-      <div class="step-title" id="game-step-title">ANÁLISIS DE COPRIMALIDAD</div>
-      <div class="question-text" id="game-question">
-        Cargando pregunta...
-      </div>
+        <!-- Phase Tabs -->
+        <div class="phase-tabs">
+            <div class="phase-tab active" id="tab-phase1">Fase 1: Divisiones</div>
+            <div class="phase-tab" id="tab-phase2">Fase 2: Sustitución</div>
+            <div class="phase-tab" id="tab-phase3">Fase 3: Resultado</div>
+        </div>
 
-      <div class="options-grid" id="game-options">
-        <!-- Opciones JS -->
-      </div>
+        <!-- Game Board (Dynamic Inputs) -->
+        <div class="game-board" id="game-board">
+            <!-- Phase 1: Divisions layout will be injected here -->
+        </div>
 
-      <div class="feedback-box" id="game-feedback">
-        <div class="feedback-title" id="feedback-title">¡Correcto!</div>
-        <div class="feedback-explanation" id="feedback-desc"></div>
-      </div>
+        <!-- Action Button -->
+        <div class="actions-area">
+            <button class="btn-secondary" id="reset-exercise-btn" title="Reiniciar Ejercicio">🔄</button>
+            <button class="btn-primary" id="action-btn" disabled>Comprobar</button>
+        </div>
 
-      <button class="next-btn" id="game-next-btn">CONTINUAR</button>
+        <!-- Keyboard area -->
+        <div class="keyboard-area">
+            <div class="keyboard-label">Botones disponibles</div>
+            <div class="btn-pool" id="btn-pool">
+                <!-- Predisposed numbers will be injected here -->
+            </div>
+        </div>
     </div>
 
-    <!-- 4. GAME OVER -->
-    <div id="screen-gameover" class="card">
-      <h2 style="text-align: center; color: var(--error-color); font-size: 2rem; font-weight: 800; margin-bottom: 15px;">MÓDULO FALLIDO</h2>
-      <div style="text-align: center; font-size: 3.5rem; margin-bottom: 20px;">⚡</div>
-      <p style="text-align: center; margin-bottom: 20px; font-size: 1.1rem;">Has agotado tus vidas en este módulo. Revisa los teoremas de Fermat y Euler y vuelve a intentarlo.</p>
-      
-      <div style="background: #050508; padding: 15px; border-radius: 8px; border: 1px solid var(--card-border); margin-bottom: 20px; text-align: center;">
-        <p>Puntuación: <strong id="gameover-score" class="stat-score">0</strong> ptos</p>
-      </div>
+    <!-- Modals -->
+    <!-- Welcome Modal -->
+    <div class="modal-overlay" id="welcome-modal">
+        <div class="modal-content">
+            <div class="modal-title">¡Bienvenido a Euclides!</div>
+            <div class="modal-body">
+                <p>Aprende y practica el <strong>Algoritmo de Euclides Extendido</strong> de forma interactiva.</p>
+                
+                <h3>El Desafío</h3>
+                <p>Resolverás 25 ejercicios numéricos secuenciales. Cada ejercicio tiene 3 fases:</p>
+                <ul>
+                    <li><strong>Fase 1:</strong> Rellena las divisiones sucesivas $A = B \cdot q + r$ hasta obtener residuo 0.</li>
+                    <li><strong>Fase 2:</strong> Realiza la sustitución hacia atrás de los residuos para expresar el MCD como combinación lineal de $A$ y $B$.</li>
+                    <li><strong>Fase 3:</strong> Escribe los coeficientes finales de Bézout ($s$ y $t$) y el MCD.</li>
+                </ul>
 
-      <button class="start-btn" id="gameover-retry-btn" style="background-color: var(--error-color); color: #fff; margin-bottom: 12px;">REINTENTAR NIVEL</button>
-      <button class="acc-btn" id="gameover-home-btn" style="width: 100%;">VOLVER A MÓDULOS</button>
+                <h3>¿Cómo jugar?</h3>
+                <p>1. Toca una casilla vacía en la fórmula (se iluminará en violeta).</p>
+                <p>2. Toca un botón numérico del panel inferior para colocar el número.</p>
+                <p>3. Pulsa <strong>Comprobar</strong>. Si hay fallos, se marcarán en rojo. ¡Debes corregirlos para poder continuar!</p>
+            </div>
+            <button class="btn-primary" id="welcome-close-btn">Empezar a Jugar</button>
+        </div>
     </div>
 
-    <!-- 5. VICTORIA / COMPLETADO -->
-    <div id="screen-victory" class="card">
-      <h2 class="welcome-title" style="color: var(--fermat-color); font-size: 2.2rem;">¡LABERINTO RESUELTO!</h2>
-      <p style="text-align: center; margin-bottom: 15px; font-size: 1.1rem; color: var(--success-color); font-weight: bold;">Has superado los 25 ejercicios y dominas la exponenciación modular.</p>
-
-      <div class="name-input-group" id="name-prompt">
-        <label for="player-name" style="font-size: 0.95rem; font-weight: 600; text-align: center;">Escribe tu nombre para recibir tu Diploma:</label>
-        <input type="text" id="player-name" class="name-input" placeholder="Tu Nombre o Alias" maxlength="30">
-        <button class="acc-btn" id="btn-generate-diploma" style="background-color: var(--euler-color); color: #000; width: 100%;">GENERAR DIPLOMA</button>
-      </div>
-
-      <div class="diploma-box" id="diploma-display" style="display: none;">
-        <div class="diploma-header">Cátedra de Teoría de Números</div>
-        <div class="diploma-title">GRAN MAESTRO DE LA ARITMÉTICA MODULAR</div>
-        <p>Se confiere este reconocimiento a:</p>
-        <div class="diploma-name" id="diploma-player-name">Calculista Audaz</div>
-        <p class="diploma-text">Por resolver exitosamente los 25 problemas de potencias modulares complejas de base 2, aplicando con destreza el Teorema de Euler y el Pequeño Teorema de Fermat, y desarmando los módulos trampa no coprimos mediante ciclos recurrentes.</p>
-        <div class="diploma-score">Puntos Obtenidos: <span id="diploma-score-value">0</span></div>
-      </div>
-
-      <button class="start-btn" id="victory-restart-btn" style="margin-top: 15px;">REINICIAR TODO EL JUEGO</button>
+    <!-- Completion Modal -->
+    <div class="modal-overlay" id="complete-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="complete-modal-title">¡Ejercicio Completado!</div>
+            <div class="modal-body" style="text-align: center;" id="complete-modal-body">
+                <p>¡Buen trabajo! Has resuelto este ejercicio correctamente.</p>
+                <div style="font-size: 3rem; margin: 1rem 0;">🎉</div>
+                <p>Puntos ganados: <strong style="color:var(--success-color);" id="earned-points-text">+100</strong></p>
+            </div>
+            <button class="btn-primary" id="complete-close-btn">Siguiente Ejercicio</button>
+        </div>
     </div>
 
-  </main>
+    <!-- Game Finish Modal -->
+    <div class="modal-overlay" id="finish-modal">
+        <div class="modal-content">
+            <div class="modal-title">👑 ¡Juego Terminado! 👑</div>
+            <div class="modal-body" style="text-align: center;">
+                <p>¡Increíble! Has completado los 25 ejercicios del algoritmo de Euclides.</p>
+                <div style="font-size: 4rem; margin: 1rem 0;">🏆</div>
+                <p>Puntuación Final: <strong style="color:var(--accent-light);" id="final-score-text">0</strong></p>
+                <p>Total de Fallos: <strong style="color:#ef4444;" id="final-errors-text">0</strong></p>
+            </div>
+            <button class="btn-primary" id="finish-reset-btn">Jugar de Nuevo</button>
+        </div>
+    </div>
 
-  <footer>
-    Euler & Fermat Modular Quiz &copy; 2026. Aritmética modular sin cálculos.
-  </footer>
+    <!-- Toast Alerts -->
+    <div class="toast" id="toast-alert">¡Correcto!</div>
 
-  <script>
-    // --- AUDIO SINTETIZADO WEB AUDIO API ---
-    let audioCtx = null;
-    let isMuted = false;
-
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-    }
-
-    function playTone(freq, type, duration, delay = 0) {
-      if (isMuted) return;
-      initAudio();
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      setTimeout(() => {
-        try {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start();
-          osc.stop(audioCtx.currentTime + duration);
-        } catch (e) {
-          console.error("Audio error:", e);
-        }
-      }, delay);
-    }
-
-    function playSoundSuccess() {
-      playTone(587.33, 'sine', 0.15, 0);   // Re 5 (D5)
-      playTone(783.99, 'sine', 0.25, 100); // Sol 5 (G5)
-    }
-
-    function playSoundError() {
-      playTone(180, 'sawtooth', 0.3, 0);
-      playTone(120, 'sawtooth', 0.2, 80);
-    }
-
-    function playSoundWin() {
-      const arpeggio = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
-      arpeggio.forEach((f, i) => {
-        playTone(f, 'sine', 0.35, i * 110);
-      });
-    }
-
-    // --- BANCO DE DATOS MATEMÁTICO - 25 EJERCICIOS CON 3 FASES ---
-    const EXERCISES = [
-      // MÓDULO 1: MÓDULOS PRIMOS PEQUEÑOS (FERMAT) (1-5)
-      {
-        id: 1,
-        title: "Potencia modular mod 3",
-        module: 1,
-        base: 2,
-        exponent: 8,
-        modulus: 3,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "El módulo p = 3 es un número primo. ¿Qué teorema aplicamos y cuál es el periodo o base de reducción?",
-            options: [
-              "Fermat: Como 3 es primo y MCD(2,3)=1, 2² ≡ 1 (mod 3). Reducimos el exponente módulo p-1 = 2.",
-              "Euler: Como 3 es compuesto, calculamos φ(3) = 1 y reducimos el exponente módulo 1.",
-              "Trampa: No se puede aplicar Fermat porque el módulo y la base son coprimos."
-            ],
-            correct: 0,
-            explanation: "Como 3 es primo, por el Pequeño Teorema de Fermat, 2^(3-1) = 2² ≡ 1 (mod 3). La reducción se hace con base p - 1 = 2."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduzcamos el exponente n = 8 utilizando la base del teorema (2). Calcula r = 8 mod 2:",
-            options: [
-              "r = 8 mod 2 = 1",
-              "r = 8 mod 2 = 0",
-              "r = 8 mod 2 = 2"
-            ],
-            correct: 1,
-            explanation: "8 es divisible exactamente por 2 (8 = 2 × 4). Por tanto, el residuo es r = 0."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Sabiendo que 2⁸ ≡ 2⁰ (mod 3), calcula el valor final del residuo:",
-            options: [
-              "2⁰ ≡ 1 (mod 3)",
-              "2⁰ ≡ 2 (mod 3)",
-              "2⁰ ≡ 0 (mod 3)"
-            ],
-            correct: 0,
-            explanation: "Cualquier número (excepto 0) elevado a la potencia 0 es igual a 1. Así, 2⁸ ≡ 1 (mod 3)."
-          }
-        ]
-      },
-      {
-        id: 2,
-        title: "Potencia modular mod 5",
-        module: 1,
-        base: 2,
-        exponent: 9,
-        modulus: 5,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "El módulo p = 5 es primo. ¿Qué reducción corresponde según el Pequeño Teorema de Fermat?",
-            options: [
-              "Reducimos el exponente módulo p - 1 = 4, dado que 2⁴ ≡ 1 (mod 5).",
-              "Reducimos el exponente módulo p = 5.",
-              "No se puede reducir porque 9 es mayor que 5."
-            ],
-            correct: 0,
-            explanation: "5 es primo y coprimo con 2. Fermat nos asegura que 2^(5-1) = 2⁴ ≡ 1 (mod 5). La base de reducción es 4."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduzcamos el exponente n = 9 dividiéndolo por 4. Encuentra r = 9 mod 4:",
-            options: [
-              "r = 9 mod 4 = 2",
-              "r = 9 mod 4 = 1",
-              "r = 9 mod 4 = 3"
-            ],
-            correct: 1,
-            explanation: "9 = 4 × 2 + 1. El resto de la división es 1."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el valor final: 2⁹ ≡ 2¹ (mod 5):",
-            options: [
-              "2¹ ≡ 1 (mod 5)",
-              "2¹ ≡ 2 (mod 5)",
-              "2¹ ≡ 4 (mod 5)"
-            ],
-            correct: 1,
-            explanation: "2¹ es simplemente 2. En módulo 5, el residuo es 2."
-          }
-        ]
-      },
-      {
-        id: 3,
-        title: "Potencia modular mod 7",
-        module: 1,
-        base: 2,
-        exponent: 14,
-        modulus: 7,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "El módulo p = 7 es primo. Por el Pequeño Teorema de Fermat, ¿qué exponente nos asegura la congruencia a 1?",
-            options: [
-              "2⁶ ≡ 1 (mod 7). Reducimos el exponente modulo p-1 = 6.",
-              "2⁷ ≡ 1 (mod 7). Reducimos el exponente modulo p = 7.",
-              "2⁵ ≡ 1 (mod 7). Reducimos el exponente modulo 5."
-            ],
-            correct: 0,
-            explanation: "Fermat dicta que para base coprima con primo p, 2^(p-1) ≡ 1 (mod p). Así, 2⁶ ≡ 1 (mod 7)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula el resto de reducir el exponente: r = 14 mod 6:",
-            options: [
-              "r = 14 mod 6 = 2",
-              "r = 14 mod 6 = 4",
-              "r = 14 mod 6 = 0"
-            ],
-            correct: 0,
-            explanation: "14 = 6 × 2 + 2. El residuo es r = 2."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Sabiendo que 2¹⁴ ≡ 2² (mod 7), ¿cuál es el resultado?",
-            options: [
-              "2² ≡ 4 (mod 7)",
-              "2² ≡ 2 (mod 7)",
-              "2² ≡ 1 (mod 7)"
-            ],
-            correct: 0,
-            explanation: "2² = 4. Como 4 < 7, el residuo final es 4."
-          }
-        ]
-      },
-      {
-        id: 4,
-        title: "Potencia modular mod 11",
-        module: 1,
-        base: 2,
-        exponent: 23,
-        modulus: 11,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "Con módulo primo p = 11, ¿cuál es la base de reducción que usaremos según Fermat?",
-            options: [
-              "Base p - 1 = 10, porque 2¹⁰ ≡ 1 (mod 11).",
-              "Base p = 11, porque 2¹¹ ≡ 1 (mod 11).",
-              "Base φ(11) = 9."
-            ],
-            correct: 0,
-            explanation: "Fermat nos da 2^(11-1) = 2¹⁰ ≡ 1 (mod 11). La base de reducción es 10."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula el exponente reducido: r = 23 mod 10:",
-            options: [
-              "r = 23 mod 10 = 3",
-              "r = 23 mod 10 = 2",
-              "r = 23 mod 10 = 5"
-            ],
-            correct: 0,
-            explanation: "23 = 10 × 2 + 3. El residuo es r = 3."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Obtén el residuo final de 2³ mod 11:",
-            options: [
-              "2³ ≡ 8 (mod 11)",
-              "2³ ≡ 3 (mod 11)",
-              "2³ ≡ 1 (mod 11)"
-            ],
-            correct: 0,
-            explanation: "2³ = 8. Al ser menor que 11, 2²³ ≡ 2³ ≡ 8 (mod 11)."
-          }
-        ]
-      },
-      {
-        id: 5,
-        title: "Potencia modular mod 13",
-        module: 1,
-        base: 2,
-        exponent: 38,
-        modulus: 13,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "Para p = 13 (primo), ¿cuál es la base de reducción adecuada?",
-            options: [
-              "Reducción módulo p - 1 = 12.",
-              "Reducción módulo p = 13.",
-              "Reducción módulo 6."
-            ],
-            correct: 0,
-            explanation: "Por Fermat, 2¹² ≡ 1 (mod 13). Reducimos el exponente módulo 12."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Encuentra el exponente reducido: r = 38 mod 12:",
-            options: [
-              "r = 38 mod 12 = 2",
-              "r = 38 mod 12 = 4",
-              "r = 38 mod 12 = 8"
-            ],
-            correct: 0,
-            explanation: "38 = 12 × 3 + 2. El residuo es r = 2."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Obtén el resultado final de 2² mod 13:",
-            options: [
-              "2² ≡ 4 (mod 13)",
-              "2² ≡ 2 (mod 13)",
-              "2² ≡ 1 (mod 13)"
-            ],
-            correct: 0,
-            explanation: "2² = 4. Menor que 13, por lo que 2³⁸ ≡ 4 (mod 13)."
-          }
-        ]
-      },
-
-      // MÓDULO 2: MÓDULOS COMPUESTOS IMPARES (EULER) (6-10)
-      {
-        id: 6,
-        title: "Potencia modular mod 9",
-        module: 2,
-        base: 2,
-        exponent: 10,
-        modulus: 9,
-        phases: [
-          {
-            title: "Paso 1: APLICACIÓN DE EULER",
-            question: "El módulo p = 9 es compuesto. Sabiendo que 9 = 3², calcula la función de Euler φ(9):",
-            options: [
-              "φ(9) = 9 × (1 - 1/3) = 6",
-              "φ(9) = 9 - 1 = 8",
-              "φ(9) = 9 / 3 = 3"
-            ],
-            correct: 0,
-            explanation: "Para un número p = q^k, φ(p) = p × (1 - 1/q). En este caso, φ(9) = 9 × (2/3) = 6. Euler nos garantiza que 2⁶ ≡ 1 (mod 9)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce el exponente n = 10 usando la base de reducción φ(9) = 6. Calcula r = 10 mod 6:",
-            options: [
-              "r = 10 mod 6 = 4",
-              "r = 10 mod 6 = 2",
-              "r = 10 mod 6 = 0"
-            ],
-            correct: 0,
-            explanation: "10 = 6 × 1 + 4. El residuo es 4."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el valor final: 2⁴ mod 9:",
-            options: [
-              "2⁴ = 16 ≡ 7 (mod 9)",
-              "2⁴ = 16 ≡ 5 (mod 9)",
-              "2⁴ = 16 ≡ 2 (mod 9)"
-            ],
-            correct: 0,
-            explanation: "16 dividido entre 9 da un resto de 7 (16 = 9 × 1 + 7)."
-          }
-        ]
-      },
-      {
-        id: 7,
-        title: "Potencia modular mod 15",
-        module: 2,
-        base: 2,
-        exponent: 14,
-        modulus: 15,
-        phases: [
-          {
-            title: "Paso 1: APLICACIÓN DE EULER",
-            question: "El módulo p = 15 es compuesto (15 = 3 × 5). Calcula φ(15) sabiendo que φ(a×b) = φ(a)×φ(b) si son coprimos:",
-            options: [
-              "φ(15) = φ(3) × φ(5) = 2 × 4 = 8",
-              "φ(15) = 15 - 1 = 14",
-              "φ(15) = 3 × 4 = 12"
-            ],
-            correct: 0,
-            explanation: "Como 3 y 5 son coprimos, φ(15) = (3-1) × (5-1) = 2 × 4 = 8. Por tanto, 2⁸ ≡ 1 (mod 15)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce el exponente n = 14 modulo 8. Encuentra r = 14 mod 8:",
-            options: [
-              "r = 14 mod 8 = 6",
-              "r = 14 mod 8 = 4",
-              "r = 14 mod 8 = 2"
-            ],
-            correct: 0,
-            explanation: "14 = 8 × 1 + 6. El resto es 6."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el valor final: 2⁶ mod 15:",
-            options: [
-              "2⁶ = 64 ≡ 4 (mod 15)",
-              "2⁶ = 64 ≡ 9 (mod 15)",
-              "2⁶ = 64 ≡ 14 (mod 15)"
-            ],
-            correct: 0,
-            explanation: "64 = 15 × 4 + 4. El resto es 4."
-          }
-        ]
-      },
-      {
-        id: 8,
-        title: "Potencia modular mod 21",
-        module: 2,
-        base: 2,
-        exponent: 15,
-        modulus: 21,
-        phases: [
-          {
-            title: "Paso 1: APLICACIÓN DE EULER",
-            question: "Módulo p = 21 (21 = 3 × 7). Calcula φ(21) como base de reducción por Euler:",
-            options: [
-              "φ(21) = φ(3) × φ(7) = 2 × 6 = 12",
-              "φ(21) = 21 - 1 = 20",
-              "φ(21) = 3 × 6 = 18"
-            ],
-            correct: 0,
-            explanation: "φ(21) = (3-1) × (7-1) = 2 × 6 = 12. Esto nos dice que 2¹² ≡ 1 (mod 21)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Encuentra el exponente reducido: r = 15 mod 12:",
-            options: [
-              "r = 15 mod 12 = 3",
-              "r = 15 mod 12 = 5",
-              "r = 15 mod 12 = 1"
-            ],
-            correct: 0,
-            explanation: "15 = 12 × 1 + 3. El residuo es 3."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Obtén el residuo de 2³ mod 21:",
-            options: [
-              "2³ ≡ 8 (mod 21)",
-              "2³ ≡ 3 (mod 21)",
-              "2³ ≡ 1 (mod 21)"
-            ],
-            correct: 0,
-            explanation: "2³ = 8. Al ser menor que 21, 2¹⁵ ≡ 8 (mod 21)."
-          }
-        ]
-      },
-      {
-        id: 9,
-        title: "Potencia modular mod 25",
-        module: 2,
-        base: 2,
-        exponent: 22,
-        modulus: 25,
-        phases: [
-          {
-            title: "Paso 1: APLICACIÓN DE EULER",
-            question: "Módulo p = 25 (25 = 5²). Calcula la función de Euler φ(25):",
-            options: [
-              "φ(25) = 25 × (1 - 1/5) = 20",
-              "φ(25) = 25 - 1 = 24",
-              "φ(25) = 5 × 4 = 20"
-            ],
-            correct: 0,
-            explanation: "Al ser base de potencia prima 5², φ(25) = 25 × (1 - 1/5) = 25 × (4/5) = 20. Por ende, 2²⁰ ≡ 1 (mod 25)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce el exponente: r = 22 mod 20:",
-            options: [
-              "r = 22 mod 20 = 2",
-              "r = 22 mod 20 = 0",
-              "r = 22 mod 20 = 5"
-            ],
-            correct: 0,
-            explanation: "22 = 20 × 1 + 2. El residuo es 2."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el valor final: 2² mod 25:",
-            options: [
-              "2² ≡ 4 (mod 25)",
-              "2² ≡ 2 (mod 25)",
-              "2² ≡ 0 (mod 25)"
-            ],
-            correct: 0,
-            explanation: "2² = 4. Menor que 25, el residuo es 4."
-          }
-        ]
-      },
-      {
-        id: 10,
-        title: "Potencia modular mod 33",
-        module: 2,
-        base: 2,
-        exponent: 26,
-        modulus: 33,
-        phases: [
-          {
-            title: "Paso 1: APLICACIÓN DE EULER",
-            question: "Módulo compuesto p = 33 (33 = 3 × 11). Calcula la base de reducción φ(33):",
-            options: [
-              "φ(33) = φ(3) × φ(11) = 2 × 10 = 20",
-              "φ(33) = 33 - 1 = 32",
-              "φ(33) = 3 × 10 = 30"
-            ],
-            correct: 0,
-            explanation: "3 y 11 son primos. φ(33) = (3-1) × (11-1) = 20. Euler garantiza que 2²⁰ ≡ 1 (mod 33)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce: r = 26 mod 20:",
-            options: [
-              "r = 26 mod 20 = 6",
-              "r = 26 mod 20 = 2",
-              "r = 26 mod 20 = 1"
-            ],
-            correct: 0,
-            explanation: "26 = 20 × 1 + 6. El residuo es 6."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el valor final: 2⁶ mod 33:",
-            options: [
-              "2⁶ = 64 ≡ 31 (mod 33)",
-              "2⁶ = 64 ≡ 30 (mod 33)",
-              "2⁶ = 64 ≡ 1 (mod 33)"
-            ],
-            correct: 0,
-            explanation: "64 dividido entre 33 da cociente 1 y residuo 31 (64 = 33 × 1 + 31)."
-          }
-        ]
-      },
-
-      // MÓDULO 3: EXPONENTES GRANDES Y PRIMOS MEDIOS (11-15)
-      {
-        id: 11,
-        title: "Potencia modular mod 17",
-        module: 3,
-        base: 2,
-        exponent: 163,
-        modulus: 17,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "Módulo primo p = 17. ¿Qué base de reducción utilizamos según Fermat?",
-            options: [
-              "Base p - 1 = 16.",
-              "Base p = 17.",
-              "Base φ(17) = 8."
-            ],
-            correct: 0,
-            explanation: "17 es primo. Fermat estipula 2¹⁶ ≡ 1 (mod 17). La reducción del exponente se hace módulo 16."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula el residuo de reducir un exponente grande: r = 163 mod 16:",
-            options: [
-              "r = 163 mod 16 = 3",
-              "r = 163 mod 16 = 1",
-              "r = 163 mod 16 = 13"
-            ],
-            correct: 0,
-            explanation: "163 = 16 × 10 + 3. El residuo es r = 3."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Resuelve el residuo final: 2³ mod 17:",
-            options: [
-              "2³ ≡ 8 (mod 17)",
-              "2³ ≡ 3 (mod 17)",
-              "2³ ≡ 1 (mod 17)"
-            ],
-            correct: 0,
-            explanation: "2³ = 8, que en módulo 17 es simplemente 8."
-          }
-        ]
-      },
-      {
-        id: 12,
-        title: "Potencia modular mod 13",
-        module: 3,
-        base: 2,
-        exponent: 245,
-        modulus: 13,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "Módulo primo p = 13. ¿Cuál es el exponente base de reducción según Fermat?",
-            options: [
-              "12, ya que 2¹² ≡ 1 (mod 13).",
-              "13, ya que 2¹³ ≡ 1 (mod 13).",
-              "6, reduciendo a la mitad."
-            ],
-            correct: 0,
-            explanation: "13 es primo, por tanto la base es p - 1 = 12."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce el exponente grande: r = 245 mod 12:",
-            options: [
-              "r = 245 mod 12 = 5",
-              "r = 245 mod 12 = 1",
-              "r = 245 mod 12 = 7"
-            ],
-            correct: 0,
-            explanation: "245 = 12 × 20 + 5. El residuo es r = 5."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el valor final: 2⁵ mod 13:",
-            options: [
-              "2⁵ = 32 ≡ 6 (mod 13)",
-              "2⁵ = 32 ≡ 5 (mod 13)",
-              "2⁵ = 32 ≡ 12 (mod 13)"
-            ],
-            correct: 0,
-            explanation: "32 = 13 × 2 + 6. El residuo es 6."
-          }
-        ]
-      },
-      {
-        id: 13,
-        title: "Potencia modular mod 19",
-        module: 3,
-        base: 2,
-        exponent: 364,
-        modulus: 19,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "Para p = 19 (primo), ¿cuál es el exponente de simplificación?",
-            options: [
-              "18, porque 2¹⁸ ≡ 1 (mod 19).",
-              "19, porque 2¹⁹ ≡ 1 (mod 19).",
-              "9, por simetría."
-            ],
-            correct: 0,
-            explanation: "Al ser 19 primo, aplicamos Fermat reduciendo el exponente módulo 18."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula: r = 364 mod 18:",
-            options: [
-              "r = 364 mod 18 = 4",
-              "r = 364 mod 18 = 2",
-              "r = 364 mod 18 = 0"
-            ],
-            correct: 0,
-            explanation: "364 = 18 × 20 + 4. El residuo es 4."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Resuelve: 2⁴ mod 19:",
-            options: [
-              "2⁴ = 16 ≡ 16 (mod 19)",
-              "2⁴ = 16 ≡ 3 (mod 19)",
-              "2⁴ = 16 ≡ 1 (mod 19)"
-            ],
-            correct: 0,
-            explanation: "2⁴ = 16. Al ser 16 < 19, el residuo final es exactamente 16."
-          }
-        ]
-      },
-      {
-        id: 14,
-        title: "Potencia modular mod 11",
-        module: 3,
-        base: 2,
-        exponent: 1003,
-        modulus: 11,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "Con módulo primo p = 11, ¿cuál es la base de reducción para simplificar el exponente 1003?",
-            options: [
-              "10, porque 2¹⁰ ≡ 1 (mod 11).",
-              "11, porque 2¹¹ ≡ 1 (mod 11).",
-              "5, factor menor."
-            ],
-            correct: 0,
-            explanation: "Por Fermat, reducimos el exponente módulo p - 1 = 10."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula: r = 1003 mod 10:",
-            options: [
-              "r = 1003 mod 10 = 3",
-              "r = 1003 mod 10 = 1",
-              "r = 1003 mod 10 = 0"
-            ],
-            correct: 0,
-            explanation: "1003 dividido entre 10 da un residuo de 3."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula: 2³ mod 11:",
-            options: [
-              "2³ ≡ 8 (mod 11)",
-              "2³ ≡ 3 (mod 11)",
-              "2³ ≡ 1 (mod 11)"
-            ],
-            correct: 0,
-            explanation: "2³ = 8. Por tanto, 2¹⁰⁰³ ≡ 8 (mod 11)."
-          }
-        ]
-      },
-      {
-        id: 15,
-        title: "Potencia modular mod 7",
-        module: 3,
-        base: 2,
-        exponent: 2005,
-        modulus: 7,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Teorema",
-            question: "Módulo primo p = 7. ¿Cuál es el exponente base de reducción?",
-            options: [
-              "6, porque 2⁶ ≡ 1 (mod 7).",
-              "7, porque 2⁷ ≡ 1 (mod 7).",
-              "3, exponente alternativo."
-            ],
-            correct: 0,
-            explanation: "Por Fermat, con módulo primo 7, la base de reducción es 6."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce el exponente gigante: r = 2005 mod 6:",
-            options: [
-              "r = 2005 mod 6 = 1",
-              "r = 2005 mod 6 = 5",
-              "r = 2005 mod 6 = 3"
-            ],
-            correct: 0,
-            explanation: "2005 = 6 × 334 + 1 (2004 es divisible por 6). El resto es 1."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Resuelve el valor de 2¹ mod 7:",
-            options: [
-              "2¹ ≡ 2 (mod 7)",
-              "2¹ ≡ 1 (mod 7)",
-              "2¹ ≡ 5 (mod 7)"
-            ],
-            correct: 0,
-            explanation: "2¹ = 2, por lo que el residuo final es 2."
-          }
-        ]
-      },
-
-      // MÓDULO 4: MÓDULOS COMPUESTOS GRANDES (16-20)
-      {
-        id: 16,
-        title: "Potencia modular mod 35",
-        module: 4,
-        base: 2,
-        exponent: 50,
-        modulus: 35,
-        phases: [
-          {
-            title: "Paso 1: CALCULAR PHI",
-            question: "Módulo p = 35 (35 = 5 × 7). Calcula φ(35) para aplicar el Teorema de Euler:",
-            options: [
-              "φ(35) = φ(5) × φ(7) = 4 × 6 = 24",
-              "φ(35) = 35 - 1 = 34",
-              "φ(35) = 5 × 6 = 30"
-            ],
-            correct: 0,
-            explanation: "Como 5 y 7 son primos coprimos, φ(35) = 4 × 6 = 24. Así, 2²⁴ ≡ 1 (mod 35)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce el exponente n = 50 mod 24:",
-            options: [
-              "r = 50 mod 24 = 2",
-              "r = 50 mod 24 = 4",
-              "r = 50 mod 24 = 0"
-            ],
-            correct: 0,
-            explanation: "50 = 24 × 2 + 2. El residuo es 2."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Resuelve el cálculo final: 2² mod 35:",
-            options: [
-              "2² ≡ 4 (mod 35)",
-              "2² ≡ 2 (mod 35)",
-              "2² ≡ 9 (mod 35)"
-            ],
-            correct: 0,
-            explanation: "2² = 4. Por lo tanto, 2⁵⁰ ≡ 4 (mod 35)."
-          }
-        ]
-      },
-      {
-        id: 17,
-        title: "Potencia modular mod 45",
-        module: 4,
-        base: 2,
-        exponent: 75,
-        modulus: 45,
-        phases: [
-          {
-            title: "Paso 1: CALCULAR PHI",
-            question: "Módulo p = 45 (45 = 9 × 5 = 3² × 5). Calcula φ(45) para aplicar Euler:",
-            options: [
-              "φ(45) = φ(9) × φ(5) = 6 × 4 = 24",
-              "φ(45) = 45 - 1 = 44",
-              "φ(45) = 9 × 4 = 36"
-            ],
-            correct: 0,
-            explanation: "9 y 5 son coprimos. φ(9) = 6 y φ(5) = 4. Por lo tanto, φ(45) = 6 × 4 = 24. Lo que indica que 2²⁴ ≡ 1 (mod 45)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula el exponente reducido: r = 75 mod 24:",
-            options: [
-              "r = 75 mod 24 = 3",
-              "r = 75 mod 24 = 1",
-              "r = 75 mod 24 = 5"
-            ],
-            correct: 0,
-            explanation: "75 = 24 × 3 + 3 (72 es divisible por 24). El residuo es 3."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el valor de 2³ mod 45:",
-            options: [
-              "2³ ≡ 8 (mod 45)",
-              "2³ ≡ 3 (mod 45)",
-              "2³ ≡ 1 (mod 45)"
-            ],
-            correct: 0,
-            explanation: "2³ = 8. Al ser menor que 45, 2⁷⁵ ≡ 8 (mod 45)."
-          }
-        ]
-      },
-      {
-        id: 18,
-        title: "Potencia modular mod 55",
-        module: 4,
-        base: 2,
-        exponent: 83,
-        modulus: 55,
-        phases: [
-          {
-            title: "Paso 1: CALCULAR PHI",
-            question: "Módulo p = 55 (55 = 5 × 11). Calcula φ(55) para usar de base:",
-            options: [
-              "φ(55) = φ(5) × φ(11) = 4 × 10 = 40",
-              "φ(55) = 55 - 1 = 54",
-              "φ(55) = 5 × 10 = 50"
-            ],
-            correct: 0,
-            explanation: "φ(55) = (5-1) × (11-1) = 40. Euler garantiza que 2⁴⁰ ≡ 1 (mod 55)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce: r = 83 mod 40:",
-            options: [
-              "r = 83 mod 40 = 3",
-              "r = 83 mod 40 = 2",
-              "r = 83 mod 40 = 1"
-            ],
-            correct: 0,
-            explanation: "83 = 40 × 2 + 3. El residuo es 3."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Obtén el resultado final de 2³ mod 55:",
-            options: [
-              "2³ ≡ 8 (mod 55)",
-              "2³ ≡ 3 (mod 55)",
-              "2³ ≡ 1 (mod 55)"
-            ],
-            correct: 0,
-            explanation: "2³ = 8. Menor que 55, 2⁸³ ≡ 8 (mod 55)."
-          }
-        ]
-      },
-      {
-        id: 19,
-        title: "Potencia modular mod 77",
-        module: 4,
-        base: 2,
-        exponent: 124,
-        modulus: 77,
-        phases: [
-          {
-            title: "Paso 1: CALCULAR PHI",
-            question: "Módulo p = 77 (77 = 7 × 11). Calcula φ(77):",
-            options: [
-              "φ(77) = φ(7) × φ(11) = 6 × 10 = 60",
-              "φ(77) = 77 - 1 = 76",
-              "φ(77) = 7 × 10 = 70"
-            ],
-            correct: 0,
-            explanation: "φ(77) = (7-1) × (11-1) = 60. Por ende, 2⁶⁰ ≡ 1 (mod 77)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Reduce: r = 124 mod 60:",
-            options: [
-              "r = 124 mod 60 = 4",
-              "r = 124 mod 60 = 24",
-              "r = 124 mod 60 = 0"
-            ],
-            correct: 0,
-            explanation: "124 = 60 × 2 + 4. El residuo es 4."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el residuo final: 2⁴ mod 77:",
-            options: [
-              "2⁴ = 16 ≡ 16 (mod 77)",
-              "2⁴ = 16 ≡ 9 (mod 77)",
-              "2⁴ = 16 ≡ 1 (mod 77)"
-            ],
-            correct: 0,
-            explanation: "2⁴ = 16. Como 16 < 77, el residuo es 16."
-          }
-        ]
-      },
-      {
-        id: 20,
-        title: "Potencia modular mod 99",
-        module: 4,
-        base: 2,
-        exponent: 185,
-        modulus: 99,
-        phases: [
-          {
-            title: "Paso 1: CALCULAR PHI",
-            question: "Módulo p = 99 (99 = 9 × 11). Calcula φ(99):",
-            options: [
-              "φ(99) = φ(9) × φ(11) = 6 × 10 = 60",
-              "φ(99) = 99 - 1 = 98",
-              "φ(99) = 9 × 10 = 90"
-            ],
-            correct: 0,
-            explanation: "Como 9 y 11 son coprimos, φ(99) = φ(9) × φ(11) = 6 × 10 = 60. Euler nos asegura que 2⁶⁰ ≡ 1 (mod 99)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula el resto de reducir el exponente: r = 185 mod 60:",
-            options: [
-              "r = 185 mod 60 = 5",
-              "r = 185 mod 60 = 25",
-              "r = 185 mod 60 = 1"
-            ],
-            correct: 0,
-            explanation: "185 = 60 × 3 + 5. El residuo es r = 5."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Calcula el residuo final: 2⁵ mod 99:",
-            options: [
-              "2⁵ = 32 ≡ 32 (mod 99)",
-              "2⁵ = 32 ≡ 16 (mod 99)",
-              "2⁵ = 32 ≡ 1 (mod 99)"
-            ],
-            correct: 0,
-            explanation: "2⁵ = 32. Como 32 < 99, el residuo final es 32."
-          }
-        ]
-      },
-
-      // MÓDULO 5: CASOS TRAMPA Y ESPECIALES (21-25)
-      {
-        id: 21,
-        title: "Potencia modular mod 6",
-        module: 5,
-        base: 2,
-        exponent: 10,
-        modulus: 6,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Caso Trampa",
-            question: "Queremos calcular 2¹⁰ mod 6. ¿Podemos aplicar el Teorema de Euler directamente?",
-            options: [
-              "Sí, porque MCD(2,6) = 1.",
-              "No, porque MCD(2,6) = 2 ≠ 1 (la base y el módulo no son coprimos).",
-              "Sí, aplicando el Pequeño Teorema de Fermat porque 6 es compuesto."
-            ],
-            correct: 1,
-            explanation: "El Teorema de Euler exige que la base (2) y el módulo (6) sean coprimos (MCD = 1). Al ser 6 par, MCD(2,6) = 2 ≠ 1, por lo que no se aplica directamente."
-          },
-          {
-            title: "Paso 2: Análisis del Ciclo de Potencias",
-            question: "Estudiemos el ciclo de potencias de 2 mod 6: 2¹ ≡ 2, 2² ≡ 4, 2³ ≡ 2, 2⁴ ≡ 4, 2⁵ ≡ 2... ¿Cuál es la regla para exponentes n ≥ 2?",
-            options: [
-              "Para cualquier exponente par n ≥ 2, 2ⁿ ≡ 4 (mod 6); para impares n ≥ 3, 2ⁿ ≡ 2 (mod 6).",
-              "Para cualquier exponente n, 2ⁿ ≡ 2 (mod 6).",
-              "No existe un comportamiento periódico."
-            ],
-            correct: 0,
-            explanation: "Las potencias oscilan entre 2 (exponentes impares) y 4 (exponentes pares a partir del cuadrado). Es un ciclo recurrente de periodo 2."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Teniendo en cuenta que el exponente es 10 (par) y la regla del ciclo, ¿cuánto vale 2¹⁰ mod 6?",
-            options: [
-              "2¹⁰ ≡ 4 (mod 6)",
-              "2¹⁰ ≡ 2 (mod 6)",
-              "2¹⁰ ≡ 0 (mod 6)"
-            ],
-            correct: 0,
-            explanation: "Como 10 es par y mayor o igual a 2, el residuo bajo el ciclo es exactamente 4."
-          }
-        ]
-      },
-      {
-        id: 22,
-        title: "Potencia modular mod 10",
-        module: 5,
-        base: 2,
-        exponent: 15,
-        modulus: 10,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Caso Trampa",
-            question: "¿Podemos aplicar el Teorema de Euler directamente para 2¹⁵ mod 10?",
-            options: [
-              "No, porque MCD(2, 10) = 2 ≠ 1 (módulo par).",
-              "Sí, porque φ(10) = 4.",
-              "Sí, usando Fermat porque 10 es compuesto."
-            ],
-            correct: 0,
-            explanation: "MCD(2,10) = 2. Como no es 1, no se cumple la condición de coprimalidad requerida por Euler."
-          },
-          {
-            title: "Paso 2: Análisis del Ciclo de Potencias",
-            question: "Estudiemos el ciclo de potencias de 2 mod 10: 2¹ ≡ 2, 2² ≡ 4, 2³ ≡ 8, 2⁴ ≡ 6, 2⁵ ≡ 2, 2⁶ ≡ 4... El ciclo es [2, 4, 8, 6] de longitud 4. ¿Qué posición corresponde al exponente n = 15?",
-            options: [
-              "Corresponde al residuo de 15 mod 4 = 3 (tercer elemento del ciclo: 8).",
-              "Corresponde a 15 mod 4 = 1 (primer elemento: 2).",
-              "Corresponde a 15 mod 4 = 0 (último elemento: 6)."
-            ],
-            correct: 0,
-            explanation: "El ciclo de periodo 4 empieza en exponente 1. Como 15 = 4 × 3 + 3, equivale al exponente 3, es decir, el tercer elemento del ciclo: 2³ ≡ 8 (mod 10)."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "¿Cuál es el resultado final de 2¹⁵ mod 10?",
-            options: [
-              "2¹⁵ ≡ 8 (mod 10)",
-              "2¹⁵ ≡ 6 (mod 10)",
-              "2¹⁵ ≡ 2 (mod 10)"
-            ],
-            correct: 0,
-            explanation: "El residuo es 8, que es también el último dígito de 2¹⁵ = 32768."
-          }
-        ]
-      },
-      {
-        id: 23,
-        title: "Potencia modular mod 12",
-        module: 5,
-        base: 2,
-        exponent: 20,
-        modulus: 12,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Caso Trampa",
-            question: "Queremos hallar 2²⁰ mod 12. ¿Por qué no podemos usar Euler directamente?",
-            options: [
-              "Porque MCD(2, 12) = 2 ≠ 1 (módulo par y no coprimo con la base).",
-              "Porque 12 es un número de Fermat.",
-              "Porque el exponente 20 es mayor que 12."
-            ],
-            correct: 0,
-            explanation: "No son coprimos ya que MCD(2,12) = 2. Por tanto, no se cumple la hipótesis del teorema."
-          },
-          {
-            title: "Paso 2: Análisis del Ciclo de Potencias",
-            question: "Ciclo mod 12: 2¹ ≡ 2, 2² ≡ 4, 2³ ≡ 8, 2⁴ ≡ 4, 2⁵ ≡ 8... El ciclo oscila entre 4 y 8 para exponentes n ≥ 2. ¿Cómo se comporta?",
-            options: [
-              "Exponentes pares ≥ 2 dan residuo 4, exponentes impares ≥ 3 dan residuo 8.",
-              "Exponentes pares ≥ 2 dan residuo 8, exponentes impares ≥ 3 dan residuo 4.",
-              "Da siempre residuo 2."
-            ],
-            correct: 0,
-            explanation: "2²=4, 2³=8, 2⁴=4, 2⁵=8. Los exponentes pares dan 4 y los impares dan 8."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Sabiendo que el exponente es 20 (par), ¿cuál es el valor de 2²⁰ mod 12?",
-            options: [
-              "2²⁰ ≡ 4 (mod 12)",
-              "2²⁰ ≡ 8 (mod 12)",
-              "2²⁰ ≡ 2 (mod 12)"
-            ],
-            correct: 0,
-            explanation: "Dado que 20 es par y mayor o igual a 2, el residuo es 4."
-          }
-        ]
-      },
-      {
-        id: 24,
-        title: "Potencia modular mod 17",
-        module: 5,
-        base: 2,
-        exponent: 33,
-        modulus: 17,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Caso Especial",
-            question: "Módulo p = 17. 17 es un primo de Fermat (17 = 2⁴+1). Como es primo, ¿qué simplificación directa por Fermat aplicamos?",
-            options: [
-              "Pequeño Teorema de Fermat, base de reducción p - 1 = 16.",
-              "Teorema de Euler con φ(17) = 15.",
-              "Ninguno, es un caso trampa porque 17 es impar."
-            ],
-            correct: 0,
-            explanation: "Al ser 17 primo, aplicamos Fermat con base de reducción p-1 = 16. Nos asegura que 2¹⁶ ≡ 1 (mod 17)."
-          },
-          {
-            title: "Paso 2: Reducción del Exponente",
-            question: "Calcula el residuo de reducir el exponente: r = 33 mod 16:",
-            options: [
-              "r = 33 mod 16 = 1",
-              "r = 33 mod 16 = 3",
-              "r = 33 mod 16 = 17"
-            ],
-            correct: 0,
-            explanation: "33 = 16 × 2 + 1. El residuo es r = 1."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Sabiendo que 2³³ ≡ 2¹ (mod 17), ¿cuál es el resultado?",
-            options: [
-              "2¹ ≡ 2 (mod 17)",
-              "2¹ ≡ 1 (mod 17)",
-              "2¹ ≡ 4 (mod 17)"
-            ],
-            correct: 0,
-            explanation: "2¹ = 2, por lo tanto 2³³ ≡ 2 (mod 17)."
-          }
-        ]
-      },
-      {
-        id: 25,
-        title: "Potencia modular mod 20",
-        module: 5,
-        base: 2,
-        exponent: 67,
-        modulus: 20,
-        phases: [
-          {
-            title: "Paso 1: Análisis del Caso Trampa",
-            question: "Calculamos 2⁶⁷ mod 20. ¿Se puede usar el Teorema de Euler directamente?",
-            options: [
-              "No, porque MCD(2, 20) = 2 ≠ 1 (módulo compuesto par).",
-              "Sí, porque φ(20) = 8.",
-              "Sí, usando Fermat porque 20 es compuesto."
-            ],
-            correct: 0,
-            explanation: "El módulo 20 y la base 2 no son coprimos. Euler no es aplicable directamente."
-          },
-          {
-            title: "Paso 2: Análisis del Ciclo de Potencias",
-            question: "Ciclo de potencias mod 20: 2¹ ≡ 2, 2² ≡ 4, 2³ ≡ 8, 2⁴ ≡ 16, 2⁵ ≡ 12, 2⁶ ≡ 4, 2⁷ ≡ 8... El ciclo recurrente para n ≥ 2 es [4, 8, 16, 12] de longitud 4. ¿Qué posición corresponde al exponente n = 67?",
-            options: [
-              "Ocupa la posición de exponentes de la forma 4k + 3, que corresponde al valor 8.",
-              "Ocupa la posición de exponentes de la forma 4k + 2, que corresponde al valor 4.",
-              "Ocupa la posición de exponentes de la forma 4k + 1, que corresponde al valor 12."
-            ],
-            correct: 0,
-            explanation: "Para exponentes e ≥ 2, el ciclo de valores es 4, 8, 16, 12. Analizando: 67 = 4 × 16 + 3. Exponentes de la forma 4k + 3 (como 3, 7, 11... 67) tienen como residuo el valor 8."
-          },
-          {
-            title: "Paso 3: Cálculo del Residuo Final",
-            question: "Por tanto, ¿cuál es el valor final de 2⁶⁷ mod 20?",
-            options: [
-              "2⁶⁷ ≡ 8 (mod 20)",
-              "2⁶⁷ ≡ 12 (mod 20)",
-              "2⁶⁷ ≡ 4 (mod 20)"
-            ],
-            correct: 0,
-            explanation: "Siguiendo el ciclo recurrente, 2⁶⁷ ≡ 8 (mod 20)."
-          }
-        ]
-      }
-    ];
-
-    // --- VARIABLES DE ESTADO ---
-    let currentModule = 1;
-    let currentExerciseIndex = 0; // Relativo al módulo
-    let currentPhaseIndex = 0;
-    let score = 0;
-    let lives = 3;
-    let unlockedModules = [1];
-    let selectedOptionIdx = null;
-
-    // --- ELEMENTOS DEL DOM ---
-    const screens = {
-      welcome: document.getElementById('screen-welcome'),
-      modules: document.getElementById('screen-modules'),
-      gameplay: document.getElementById('screen-gameplay'),
-      gameover: document.getElementById('screen-gameover'),
-      victory: document.getElementById('screen-victory')
-    };
-
-    // --- NAVEGACIÓN ---
-    function showScreen(screenId) {
-      Object.values(screens).forEach(screen => screen.classList.remove('active'));
-      screens[screenId].classList.add('active');
-      window.scrollTo(0, 0);
-    }
-
-    // --- ACCESIBILIDAD ---
-    const fontSizes = [16, 20, 24, 14];
-    let currentFontSizeIdx = 0;
-    document.getElementById('btn-size').addEventListener('click', () => {
-      currentFontSizeIdx = (currentFontSizeIdx + 1) % fontSizes.length;
-      const size = fontSizes[currentFontSizeIdx];
-      document.documentElement.style.setProperty('--font-base', size + 'px');
-      
-      let label = "A";
-      if (size === 20) label = "A+";
-      else if (size === 24) label = "A++";
-      else if (size === 14) label = "A-";
-      document.getElementById('btn-size').innerText = label;
-      playTone(400, 'sine', 0.05);
-    });
-
-    document.getElementById('btn-contrast').addEventListener('click', () => {
-      document.body.classList.toggle('high-contrast');
-      playTone(450, 'sine', 0.05);
-    });
-
-    document.getElementById('btn-mute').addEventListener('click', () => {
-      isMuted = !isMuted;
-      document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊";
-      if (!isMuted) {
-        initAudio();
-        playTone(500, 'sine', 0.05);
-      }
-    });
-
-    // --- MANEJADORES DE BIENVENIDA ---
-    document.getElementById('welcome-start').addEventListener('click', () => {
-      initAudio();
-      playTone(440, 'sine', 0.1);
-      renderModules();
-      showScreen('modules');
-    });
-
-    document.getElementById('modules-back-welcome').addEventListener('click', () => {
-      playTone(350, 'sine', 0.08);
-      showScreen('welcome');
-    });
-
-    // --- RENDERIZAR MÓDULOS ---
-    function renderModules() {
-      const container = document.getElementById('modules-list-container');
-      container.innerHTML = '';
-
-      const modulesData = [
-        { num: 1, title: "Módulos Primos Chicos", desc: "Uso del Pequeño Teorema de Fermat (Ejercicios 1-5)" },
-        { num: 2, title: "Módulos Compuestos Impares", desc: "Teorema de Euler y cálculo de φ(p) (Ejercicios 6-10)" },
-        { num: 3, title: "Exponentes Grandes y Primos", desc: "Reducción de potencias altas mod p (Ejercicios 11-15)" },
-        { num: 4, title: "Módulos Compuestos Grandes", desc: "Cálculo de φ para compuestos grandes (Ejercicios 16-20)" },
-        { num: 5, title: "Casos Trampa y Especiales", desc: "Módulos pares y ciclos recurrentes (Ejercicios 21-25)" }
-      ];
-
-      modulesData.forEach(mod => {
-        const isUnlocked = unlockedModules.includes(mod.num);
-        const card = document.createElement('div');
-        card.className = `module-card ${isUnlocked ? '' : 'locked'}`;
-        
-        card.innerHTML = `
-          <div class="module-info">
-            <div class="module-num">Módulo ${mod.num}</div>
-            <div class="module-title">${mod.title}</div>
-            <div class="module-status">${mod.desc}</div>
-          </div>
-          <div class="module-icon">${isUnlocked ? '🔓' : '🔒'}</div>
-        `;
-
-        if (isUnlocked) {
-          card.addEventListener('click', () => {
-            startModule(mod.num);
-          });
-        }
-
-        container.appendChild(card);
-      });
-
-      updateHeaderStats();
-    }
-
-    function updateHeaderStats() {
-      const hearts = "❤️ ".repeat(Math.max(0, lives));
-      document.getElementById('modules-lives').innerText = hearts || "💀";
-      document.getElementById('modules-score').innerText = score;
-      
-      const gameLives = document.getElementById('game-lives');
-      if (gameLives) gameLives.innerText = hearts || "💀";
-      
-      const gameScore = document.getElementById('game-score');
-      if (gameScore) gameScore.innerText = `Ptos: ${score}`;
-    }
-
-    // --- INICIAR MÓDULO ---
-    function startModule(modNum) {
-      currentModule = modNum;
-      currentExerciseIndex = 0;
-      currentPhaseIndex = 0;
-      selectedOptionIdx = null;
-      playTone(480, 'sine', 0.1);
-      loadExercise();
-      showScreen('gameplay');
-    }
-
-    // --- CARGAR EJERCICIO ---
-    function loadExercise() {
-      const moduleExercises = EXERCISES.filter(ex => ex.module === currentModule);
-      const exercise = moduleExercises[currentExerciseIndex];
-      const phase = exercise.phases[currentPhaseIndex];
-      selectedOptionIdx = null;
-
-      // Reset feedback y botón continuar
-      document.getElementById('game-feedback').className = 'feedback-box';
-      document.getElementById('game-next-btn').style.display = 'none';
-
-      // Cabeceras
-      document.getElementById('game-module-title').innerText = `MÓDULO ${currentModule}`;
-      
-      const globalNumber = (currentModule - 1) * 5 + currentExerciseIndex + 1;
-      document.getElementById('game-exercise-num').innerText = `Ejercicio ${globalNumber} de 25: ${exercise.title}`;
-      document.getElementById('game-phase-label').innerText = `Paso ${currentPhaseIndex + 1} de 3`;
-
-      // Actualizar barra de pasos
-      for (let i = 0; i < 3; i++) {
-        const stepIndicator = document.getElementById(`pstep-${i}`);
-        stepIndicator.className = 'phase-step';
-        if (i === currentPhaseIndex) {
-          stepIndicator.classList.add('active');
-        } else if (i < currentPhaseIndex) {
-          stepIndicator.classList.add('passed');
-        }
-      }
-
-      // Renderizar fórmula matemática principal
-      const mathFormula = document.getElementById('game-math-formula');
-      mathFormula.innerHTML = `
-        <span class="base">${exercise.base}</span><span class="exp">${exercise.exponent}</span>
-        <span class="mod">≡ x (mod ${exercise.modulus})</span>
-      `;
-
-      // Textos
-      document.getElementById('game-step-title').innerText = phase.title;
-      document.getElementById('game-question').innerText = phase.question;
-
-      // Opciones
-      const optionsContainer = document.getElementById('game-options');
-      optionsContainer.innerHTML = '';
-      
-      phase.options.forEach((opt, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerText = opt;
-        btn.addEventListener('click', () => selectOption(idx));
-        optionsContainer.appendChild(btn);
-      });
-
-      updateHeaderStats();
-    }
-
-    function selectOption(idx) {
-      if (document.getElementById('game-next-btn').style.display === 'block') {
-        return;
-      }
-      selectedOptionIdx = idx;
-      
-      const buttons = document.querySelectorAll('#game-options .option-btn');
-      buttons.forEach((btn, bIdx) => {
-        if (bIdx === idx) {
-          btn.classList.add('selected');
-        } else {
-          btn.classList.remove('selected');
-        }
-      });
-
-      checkAnswer();
-    }
-
-    function checkAnswer() {
-      const moduleExercises = EXERCISES.filter(ex => ex.module === currentModule);
-      const exercise = moduleExercises[currentExerciseIndex];
-      const phase = exercise.phases[currentPhaseIndex];
-      const buttons = document.querySelectorAll('#game-options .option-btn');
-
-      const isCorrect = (selectedOptionIdx === phase.correct);
-
-      if (isCorrect) {
-        playSoundSuccess();
-        score += 15;
-        buttons[selectedOptionIdx].classList.remove('selected');
-        buttons[selectedOptionIdx].classList.add('correct-choice');
-        
-        const feedback = document.getElementById('game-feedback');
-        feedback.className = 'feedback-box correct';
-        document.getElementById('feedback-title').innerText = "¡CORRECTO!";
-        document.getElementById('feedback-title').className = "feedback-title correct";
-        document.getElementById('feedback-desc').innerText = phase.explanation;
-      } else {
-        playSoundError();
-        lives--;
-        buttons[selectedOptionIdx].classList.remove('selected');
-        buttons[selectedOptionIdx].classList.add('error-choice');
-        
-        buttons[phase.correct].classList.add('correct-choice');
-
-        const feedback = document.getElementById('game-feedback');
-        feedback.className = 'feedback-box incorrect';
-        document.getElementById('feedback-title').innerText = "INCORRECTO";
-        document.getElementById('feedback-title').className = "feedback-title incorrect";
-        document.getElementById('feedback-desc').innerText = phase.explanation;
-      }
-
-      updateHeaderStats();
-      document.getElementById('game-next-btn').style.display = 'block';
-    }
-
-    // --- BOTÓN CONTINUAR ---
-    document.getElementById('game-next-btn').addEventListener('click', () => {
-      playTone(450, 'sine', 0.05);
-
-      if (lives <= 0) {
-        document.getElementById('gameover-score').innerText = score;
-        showScreen('gameover');
-        return;
-      }
-
-      const moduleExercises = EXERCISES.filter(ex => ex.module === currentModule);
-      const exercise = moduleExercises[currentExerciseIndex];
-
-      if (currentPhaseIndex < 2) {
-        // Ir al siguiente paso del mismo ejercicio
-        currentPhaseIndex++;
-        loadExercise();
-      } else {
-        // Ejercicio completado
-        if (currentExerciseIndex < moduleExercises.length - 1) {
-          currentExerciseIndex++;
-          currentPhaseIndex = 0;
-          loadExercise();
-        } else {
-          // Módulo completado
-          score += 100; // Bonus
-          if (currentModule < 5) {
-            const nextMod = currentModule + 1;
-            if (!unlockedModules.includes(nextMod)) {
-              unlockedModules.push(nextMod);
+    <!-- Embedded Script -->
+    <script>
+        // Exercise list precompiled
+        const EXERCISES = [
+    {
+        "a": 106,
+        "b": 93,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 106,
+                "b": 93,
+                "q": 1,
+                "r": 13
+            },
+            {
+                "a": 93,
+                "b_next": 13,
+                "q": 7,
+                "r": 2
+            },
+            {
+                "a": 13,
+                "b_next": 2,
+                "q": 6,
+                "r": 1
+            },
+            {
+                "a": 2,
+                "b_next": 1,
+                "q": 2,
+                "r": 0
             }
-            renderModules();
-            showScreen('modules');
-          } else {
-            // Fin total del juego
-            playSoundWin();
-            document.getElementById('diploma-score-value').innerText = `${score} puntos`;
-            showScreen('victory');
-          }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_r2": -6,
+                "r2": 2
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_sub": -6,
+                "b": 93,
+                "coeff_r1_inner": -7
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 43,
+                "r1": 13,
+                "coeff_b": -6,
+                "b": 93
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 43,
+                "a": 106,
+                "coeff_b_inner": -1,
+                "coeff_b": -6,
+                "b": 93
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 43,
+                "a": 106,
+                "t": -49,
+                "b": 93
+            }
         }
-      }
-    });
+    },
+    {
+        "a": 150,
+        "b": 69,
+        "gcd": 3,
+        "divisions": [
+            {
+                "a": 150,
+                "b": 69,
+                "q": 2,
+                "r": 12
+            },
+            {
+                "a": 69,
+                "b_next": 12,
+                "q": 5,
+                "r": 9
+            },
+            {
+                "a": 12,
+                "b_next": 9,
+                "q": 1,
+                "r": 3
+            },
+            {
+                "a": 9,
+                "b_next": 3,
+                "q": 3,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 3,
+                "r1": 12,
+                "coeff_r2": -1,
+                "r2": 9
+            },
+            "step2": {
+                "gcd": 3,
+                "r1": 12,
+                "coeff_sub": -1,
+                "b": 69,
+                "coeff_r1_inner": -5
+            },
+            "step3": {
+                "gcd": 3,
+                "coeff_r1": 6,
+                "r1": 12,
+                "coeff_b": -1,
+                "b": 69
+            },
+            "step4": {
+                "gcd": 3,
+                "coeff_sub": 6,
+                "a": 150,
+                "coeff_b_inner": -2,
+                "coeff_b": -1,
+                "b": 69
+            },
+            "step5": {
+                "gcd": 3,
+                "s": 6,
+                "a": 150,
+                "t": -13,
+                "b": 69
+            }
+        }
+    },
+    {
+        "a": 153,
+        "b": 142,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 153,
+                "b": 142,
+                "q": 1,
+                "r": 11
+            },
+            {
+                "a": 142,
+                "b_next": 11,
+                "q": 12,
+                "r": 10
+            },
+            {
+                "a": 11,
+                "b_next": 10,
+                "q": 1,
+                "r": 1
+            },
+            {
+                "a": 10,
+                "b_next": 1,
+                "q": 10,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 11,
+                "coeff_r2": -1,
+                "r2": 10
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 11,
+                "coeff_sub": -1,
+                "b": 142,
+                "coeff_r1_inner": -12
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 13,
+                "r1": 11,
+                "coeff_b": -1,
+                "b": 142
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 13,
+                "a": 153,
+                "coeff_b_inner": -1,
+                "coeff_b": -1,
+                "b": 142
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 13,
+                "a": 153,
+                "t": -14,
+                "b": 142
+            }
+        }
+    },
+    {
+        "a": 133,
+        "b": 65,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 133,
+                "b": 65,
+                "q": 2,
+                "r": 3
+            },
+            {
+                "a": 65,
+                "b_next": 3,
+                "q": 21,
+                "r": 2
+            },
+            {
+                "a": 3,
+                "b_next": 2,
+                "q": 1,
+                "r": 1
+            },
+            {
+                "a": 2,
+                "b_next": 1,
+                "q": 2,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 3,
+                "coeff_r2": -1,
+                "r2": 2
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 3,
+                "coeff_sub": -1,
+                "b": 65,
+                "coeff_r1_inner": -21
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 22,
+                "r1": 3,
+                "coeff_b": -1,
+                "b": 65
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 22,
+                "a": 133,
+                "coeff_b_inner": -2,
+                "coeff_b": -1,
+                "b": 65
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 22,
+                "a": 133,
+                "t": -45,
+                "b": 65
+            }
+        }
+    },
+    {
+        "a": 159,
+        "b": 17,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 159,
+                "b": 17,
+                "q": 9,
+                "r": 6
+            },
+            {
+                "a": 17,
+                "b_next": 6,
+                "q": 2,
+                "r": 5
+            },
+            {
+                "a": 6,
+                "b_next": 5,
+                "q": 1,
+                "r": 1
+            },
+            {
+                "a": 5,
+                "b_next": 1,
+                "q": 5,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 6,
+                "coeff_r2": -1,
+                "r2": 5
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 6,
+                "coeff_sub": -1,
+                "b": 17,
+                "coeff_r1_inner": -2
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 3,
+                "r1": 6,
+                "coeff_b": -1,
+                "b": 17
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 3,
+                "a": 159,
+                "coeff_b_inner": -9,
+                "coeff_b": -1,
+                "b": 17
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 3,
+                "a": 159,
+                "t": -28,
+                "b": 17
+            }
+        }
+    },
+    {
+        "a": 197,
+        "b": 192,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 197,
+                "b": 192,
+                "q": 1,
+                "r": 5
+            },
+            {
+                "a": 192,
+                "b_next": 5,
+                "q": 38,
+                "r": 2
+            },
+            {
+                "a": 5,
+                "b_next": 2,
+                "q": 2,
+                "r": 1
+            },
+            {
+                "a": 2,
+                "b_next": 1,
+                "q": 2,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 5,
+                "coeff_r2": -2,
+                "r2": 2
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 5,
+                "coeff_sub": -2,
+                "b": 192,
+                "coeff_r1_inner": -38
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 77,
+                "r1": 5,
+                "coeff_b": -2,
+                "b": 192
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 77,
+                "a": 197,
+                "coeff_b_inner": -1,
+                "coeff_b": -2,
+                "b": 192
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 77,
+                "a": 197,
+                "t": -79,
+                "b": 192
+            }
+        }
+    },
+    {
+        "a": 180,
+        "b": 50,
+        "gcd": 10,
+        "divisions": [
+            {
+                "a": 180,
+                "b": 50,
+                "q": 3,
+                "r": 30
+            },
+            {
+                "a": 50,
+                "b_next": 30,
+                "q": 1,
+                "r": 20
+            },
+            {
+                "a": 30,
+                "b_next": 20,
+                "q": 1,
+                "r": 10
+            },
+            {
+                "a": 20,
+                "b_next": 10,
+                "q": 2,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 10,
+                "r1": 30,
+                "coeff_r2": -1,
+                "r2": 20
+            },
+            "step2": {
+                "gcd": 10,
+                "r1": 30,
+                "coeff_sub": -1,
+                "b": 50,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 10,
+                "coeff_r1": 2,
+                "r1": 30,
+                "coeff_b": -1,
+                "b": 50
+            },
+            "step4": {
+                "gcd": 10,
+                "coeff_sub": 2,
+                "a": 180,
+                "coeff_b_inner": -3,
+                "coeff_b": -1,
+                "b": 50
+            },
+            "step5": {
+                "gcd": 10,
+                "s": 2,
+                "a": 180,
+                "t": -7,
+                "b": 50
+            }
+        }
+    },
+    {
+        "a": 64,
+        "b": 36,
+        "gcd": 4,
+        "divisions": [
+            {
+                "a": 64,
+                "b": 36,
+                "q": 1,
+                "r": 28
+            },
+            {
+                "a": 36,
+                "b_next": 28,
+                "q": 1,
+                "r": 8
+            },
+            {
+                "a": 28,
+                "b_next": 8,
+                "q": 3,
+                "r": 4
+            },
+            {
+                "a": 8,
+                "b_next": 4,
+                "q": 2,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 4,
+                "r1": 28,
+                "coeff_r2": -3,
+                "r2": 8
+            },
+            "step2": {
+                "gcd": 4,
+                "r1": 28,
+                "coeff_sub": -3,
+                "b": 36,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 4,
+                "coeff_r1": 4,
+                "r1": 28,
+                "coeff_b": -3,
+                "b": 36
+            },
+            "step4": {
+                "gcd": 4,
+                "coeff_sub": 4,
+                "a": 64,
+                "coeff_b_inner": -1,
+                "coeff_b": -3,
+                "b": 36
+            },
+            "step5": {
+                "gcd": 4,
+                "s": 4,
+                "a": 64,
+                "t": -7,
+                "b": 36
+            }
+        }
+    },
+    {
+        "a": 34,
+        "b": 29,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 34,
+                "b": 29,
+                "q": 1,
+                "r": 5
+            },
+            {
+                "a": 29,
+                "b_next": 5,
+                "q": 5,
+                "r": 4
+            },
+            {
+                "a": 5,
+                "b_next": 4,
+                "q": 1,
+                "r": 1
+            },
+            {
+                "a": 4,
+                "b_next": 1,
+                "q": 4,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 5,
+                "coeff_r2": -1,
+                "r2": 4
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 5,
+                "coeff_sub": -1,
+                "b": 29,
+                "coeff_r1_inner": -5
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 6,
+                "r1": 5,
+                "coeff_b": -1,
+                "b": 29
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 6,
+                "a": 34,
+                "coeff_b_inner": -1,
+                "coeff_b": -1,
+                "b": 29
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 6,
+                "a": 34,
+                "t": -7,
+                "b": 29
+            }
+        }
+    },
+    {
+        "a": 95,
+        "b": 82,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 95,
+                "b": 82,
+                "q": 1,
+                "r": 13
+            },
+            {
+                "a": 82,
+                "b_next": 13,
+                "q": 6,
+                "r": 4
+            },
+            {
+                "a": 13,
+                "b_next": 4,
+                "q": 3,
+                "r": 1
+            },
+            {
+                "a": 4,
+                "b_next": 1,
+                "q": 4,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_r2": -3,
+                "r2": 4
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_sub": -3,
+                "b": 82,
+                "coeff_r1_inner": -6
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 19,
+                "r1": 13,
+                "coeff_b": -3,
+                "b": 82
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 19,
+                "a": 95,
+                "coeff_b_inner": -1,
+                "coeff_b": -3,
+                "b": 82
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 19,
+                "a": 95,
+                "t": -22,
+                "b": 82
+            }
+        }
+    },
+    {
+        "a": 110,
+        "b": 97,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 110,
+                "b": 97,
+                "q": 1,
+                "r": 13
+            },
+            {
+                "a": 97,
+                "b_next": 13,
+                "q": 7,
+                "r": 6
+            },
+            {
+                "a": 13,
+                "b_next": 6,
+                "q": 2,
+                "r": 1
+            },
+            {
+                "a": 6,
+                "b_next": 1,
+                "q": 6,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_r2": -2,
+                "r2": 6
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_sub": -2,
+                "b": 97,
+                "coeff_r1_inner": -7
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 15,
+                "r1": 13,
+                "coeff_b": -2,
+                "b": 97
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 15,
+                "a": 110,
+                "coeff_b_inner": -1,
+                "coeff_b": -2,
+                "b": 97
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 15,
+                "a": 110,
+                "t": -17,
+                "b": 97
+            }
+        }
+    },
+    {
+        "a": 77,
+        "b": 46,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 77,
+                "b": 46,
+                "q": 1,
+                "r": 31
+            },
+            {
+                "a": 46,
+                "b_next": 31,
+                "q": 1,
+                "r": 15
+            },
+            {
+                "a": 31,
+                "b_next": 15,
+                "q": 2,
+                "r": 1
+            },
+            {
+                "a": 15,
+                "b_next": 1,
+                "q": 15,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 31,
+                "coeff_r2": -2,
+                "r2": 15
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 31,
+                "coeff_sub": -2,
+                "b": 46,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 3,
+                "r1": 31,
+                "coeff_b": -2,
+                "b": 46
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 3,
+                "a": 77,
+                "coeff_b_inner": -1,
+                "coeff_b": -2,
+                "b": 46
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 3,
+                "a": 77,
+                "t": -5,
+                "b": 46
+            }
+        }
+    },
+    {
+        "a": 42,
+        "b": 27,
+        "gcd": 3,
+        "divisions": [
+            {
+                "a": 42,
+                "b": 27,
+                "q": 1,
+                "r": 15
+            },
+            {
+                "a": 27,
+                "b_next": 15,
+                "q": 1,
+                "r": 12
+            },
+            {
+                "a": 15,
+                "b_next": 12,
+                "q": 1,
+                "r": 3
+            },
+            {
+                "a": 12,
+                "b_next": 3,
+                "q": 4,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 3,
+                "r1": 15,
+                "coeff_r2": -1,
+                "r2": 12
+            },
+            "step2": {
+                "gcd": 3,
+                "r1": 15,
+                "coeff_sub": -1,
+                "b": 27,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 3,
+                "coeff_r1": 2,
+                "r1": 15,
+                "coeff_b": -1,
+                "b": 27
+            },
+            "step4": {
+                "gcd": 3,
+                "coeff_sub": 2,
+                "a": 42,
+                "coeff_b_inner": -1,
+                "coeff_b": -1,
+                "b": 27
+            },
+            "step5": {
+                "gcd": 3,
+                "s": 2,
+                "a": 42,
+                "t": -3,
+                "b": 27
+            }
+        }
+    },
+    {
+        "a": 113,
+        "b": 23,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 113,
+                "b": 23,
+                "q": 4,
+                "r": 21
+            },
+            {
+                "a": 23,
+                "b_next": 21,
+                "q": 1,
+                "r": 2
+            },
+            {
+                "a": 21,
+                "b_next": 2,
+                "q": 10,
+                "r": 1
+            },
+            {
+                "a": 2,
+                "b_next": 1,
+                "q": 2,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 21,
+                "coeff_r2": -10,
+                "r2": 2
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 21,
+                "coeff_sub": -10,
+                "b": 23,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 11,
+                "r1": 21,
+                "coeff_b": -10,
+                "b": 23
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 11,
+                "a": 113,
+                "coeff_b_inner": -4,
+                "coeff_b": -10,
+                "b": 23
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 11,
+                "a": 113,
+                "t": -54,
+                "b": 23
+            }
+        }
+    },
+    {
+        "a": 77,
+        "b": 16,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 77,
+                "b": 16,
+                "q": 4,
+                "r": 13
+            },
+            {
+                "a": 16,
+                "b_next": 13,
+                "q": 1,
+                "r": 3
+            },
+            {
+                "a": 13,
+                "b_next": 3,
+                "q": 4,
+                "r": 1
+            },
+            {
+                "a": 3,
+                "b_next": 1,
+                "q": 3,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_r2": -4,
+                "r2": 3
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 13,
+                "coeff_sub": -4,
+                "b": 16,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 5,
+                "r1": 13,
+                "coeff_b": -4,
+                "b": 16
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 5,
+                "a": 77,
+                "coeff_b_inner": -4,
+                "coeff_b": -4,
+                "b": 16
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 5,
+                "a": 77,
+                "t": -24,
+                "b": 16
+            }
+        }
+    },
+    {
+        "a": 160,
+        "b": 17,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 160,
+                "b": 17,
+                "q": 9,
+                "r": 7
+            },
+            {
+                "a": 17,
+                "b_next": 7,
+                "q": 2,
+                "r": 3
+            },
+            {
+                "a": 7,
+                "b_next": 3,
+                "q": 2,
+                "r": 1
+            },
+            {
+                "a": 3,
+                "b_next": 1,
+                "q": 3,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 7,
+                "coeff_r2": -2,
+                "r2": 3
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 7,
+                "coeff_sub": -2,
+                "b": 17,
+                "coeff_r1_inner": -2
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 5,
+                "r1": 7,
+                "coeff_b": -2,
+                "b": 17
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 5,
+                "a": 160,
+                "coeff_b_inner": -9,
+                "coeff_b": -2,
+                "b": 17
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 5,
+                "a": 160,
+                "t": -47,
+                "b": 17
+            }
+        }
+    },
+    {
+        "a": 119,
+        "b": 95,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 119,
+                "b": 95,
+                "q": 1,
+                "r": 24
+            },
+            {
+                "a": 95,
+                "b_next": 24,
+                "q": 3,
+                "r": 23
+            },
+            {
+                "a": 24,
+                "b_next": 23,
+                "q": 1,
+                "r": 1
+            },
+            {
+                "a": 23,
+                "b_next": 1,
+                "q": 23,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 24,
+                "coeff_r2": -1,
+                "r2": 23
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 24,
+                "coeff_sub": -1,
+                "b": 95,
+                "coeff_r1_inner": -3
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 4,
+                "r1": 24,
+                "coeff_b": -1,
+                "b": 95
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 4,
+                "a": 119,
+                "coeff_b_inner": -1,
+                "coeff_b": -1,
+                "b": 95
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 4,
+                "a": 119,
+                "t": -5,
+                "b": 95
+            }
+        }
+    },
+    {
+        "a": 153,
+        "b": 73,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 153,
+                "b": 73,
+                "q": 2,
+                "r": 7
+            },
+            {
+                "a": 73,
+                "b_next": 7,
+                "q": 10,
+                "r": 3
+            },
+            {
+                "a": 7,
+                "b_next": 3,
+                "q": 2,
+                "r": 1
+            },
+            {
+                "a": 3,
+                "b_next": 1,
+                "q": 3,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 7,
+                "coeff_r2": -2,
+                "r2": 3
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 7,
+                "coeff_sub": -2,
+                "b": 73,
+                "coeff_r1_inner": -10
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 21,
+                "r1": 7,
+                "coeff_b": -2,
+                "b": 73
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 21,
+                "a": 153,
+                "coeff_b_inner": -2,
+                "coeff_b": -2,
+                "b": 73
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 21,
+                "a": 153,
+                "t": -44,
+                "b": 73
+            }
+        }
+    },
+    {
+        "a": 148,
+        "b": 71,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 148,
+                "b": 71,
+                "q": 2,
+                "r": 6
+            },
+            {
+                "a": 71,
+                "b_next": 6,
+                "q": 11,
+                "r": 5
+            },
+            {
+                "a": 6,
+                "b_next": 5,
+                "q": 1,
+                "r": 1
+            },
+            {
+                "a": 5,
+                "b_next": 1,
+                "q": 5,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 6,
+                "coeff_r2": -1,
+                "r2": 5
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 6,
+                "coeff_sub": -1,
+                "b": 71,
+                "coeff_r1_inner": -11
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 12,
+                "r1": 6,
+                "coeff_b": -1,
+                "b": 71
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 12,
+                "a": 148,
+                "coeff_b_inner": -2,
+                "coeff_b": -1,
+                "b": 71
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 12,
+                "a": 148,
+                "t": -25,
+                "b": 71
+            }
+        }
+    },
+    {
+        "a": 111,
+        "b": 90,
+        "gcd": 3,
+        "divisions": [
+            {
+                "a": 111,
+                "b": 90,
+                "q": 1,
+                "r": 21
+            },
+            {
+                "a": 90,
+                "b_next": 21,
+                "q": 4,
+                "r": 6
+            },
+            {
+                "a": 21,
+                "b_next": 6,
+                "q": 3,
+                "r": 3
+            },
+            {
+                "a": 6,
+                "b_next": 3,
+                "q": 2,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 3,
+                "r1": 21,
+                "coeff_r2": -3,
+                "r2": 6
+            },
+            "step2": {
+                "gcd": 3,
+                "r1": 21,
+                "coeff_sub": -3,
+                "b": 90,
+                "coeff_r1_inner": -4
+            },
+            "step3": {
+                "gcd": 3,
+                "coeff_r1": 13,
+                "r1": 21,
+                "coeff_b": -3,
+                "b": 90
+            },
+            "step4": {
+                "gcd": 3,
+                "coeff_sub": 13,
+                "a": 111,
+                "coeff_b_inner": -1,
+                "coeff_b": -3,
+                "b": 90
+            },
+            "step5": {
+                "gcd": 3,
+                "s": 13,
+                "a": 111,
+                "t": -16,
+                "b": 90
+            }
+        }
+    },
+    {
+        "a": 161,
+        "b": 35,
+        "gcd": 7,
+        "divisions": [
+            {
+                "a": 161,
+                "b": 35,
+                "q": 4,
+                "r": 21
+            },
+            {
+                "a": 35,
+                "b_next": 21,
+                "q": 1,
+                "r": 14
+            },
+            {
+                "a": 21,
+                "b_next": 14,
+                "q": 1,
+                "r": 7
+            },
+            {
+                "a": 14,
+                "b_next": 7,
+                "q": 2,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 7,
+                "r1": 21,
+                "coeff_r2": -1,
+                "r2": 14
+            },
+            "step2": {
+                "gcd": 7,
+                "r1": 21,
+                "coeff_sub": -1,
+                "b": 35,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 7,
+                "coeff_r1": 2,
+                "r1": 21,
+                "coeff_b": -1,
+                "b": 35
+            },
+            "step4": {
+                "gcd": 7,
+                "coeff_sub": 2,
+                "a": 161,
+                "coeff_b_inner": -4,
+                "coeff_b": -1,
+                "b": 35
+            },
+            "step5": {
+                "gcd": 7,
+                "s": 2,
+                "a": 161,
+                "t": -9,
+                "b": 35
+            }
+        }
+    },
+    {
+        "a": 189,
+        "b": 100,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 189,
+                "b": 100,
+                "q": 1,
+                "r": 89
+            },
+            {
+                "a": 100,
+                "b_next": 89,
+                "q": 1,
+                "r": 11
+            },
+            {
+                "a": 89,
+                "b_next": 11,
+                "q": 8,
+                "r": 1
+            },
+            {
+                "a": 11,
+                "b_next": 1,
+                "q": 11,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 89,
+                "coeff_r2": -8,
+                "r2": 11
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 89,
+                "coeff_sub": -8,
+                "b": 100,
+                "coeff_r1_inner": -1
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 9,
+                "r1": 89,
+                "coeff_b": -8,
+                "b": 100
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 9,
+                "a": 189,
+                "coeff_b_inner": -1,
+                "coeff_b": -8,
+                "b": 100
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 9,
+                "a": 189,
+                "t": -17,
+                "b": 100
+            }
+        }
+    },
+    {
+        "a": 131,
+        "b": 125,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 131,
+                "b": 125,
+                "q": 1,
+                "r": 6
+            },
+            {
+                "a": 125,
+                "b_next": 6,
+                "q": 20,
+                "r": 5
+            },
+            {
+                "a": 6,
+                "b_next": 5,
+                "q": 1,
+                "r": 1
+            },
+            {
+                "a": 5,
+                "b_next": 1,
+                "q": 5,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 6,
+                "coeff_r2": -1,
+                "r2": 5
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 6,
+                "coeff_sub": -1,
+                "b": 125,
+                "coeff_r1_inner": -20
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 21,
+                "r1": 6,
+                "coeff_b": -1,
+                "b": 125
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 21,
+                "a": 131,
+                "coeff_b_inner": -1,
+                "coeff_b": -1,
+                "b": 125
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 21,
+                "a": 131,
+                "t": -22,
+                "b": 125
+            }
+        }
+    },
+    {
+        "a": 60,
+        "b": 41,
+        "gcd": 1,
+        "divisions": [
+            {
+                "a": 60,
+                "b": 41,
+                "q": 1,
+                "r": 19
+            },
+            {
+                "a": 41,
+                "b_next": 19,
+                "q": 2,
+                "r": 3
+            },
+            {
+                "a": 19,
+                "b_next": 3,
+                "q": 6,
+                "r": 1
+            },
+            {
+                "a": 3,
+                "b_next": 1,
+                "q": 3,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 1,
+                "r1": 19,
+                "coeff_r2": -6,
+                "r2": 3
+            },
+            "step2": {
+                "gcd": 1,
+                "r1": 19,
+                "coeff_sub": -6,
+                "b": 41,
+                "coeff_r1_inner": -2
+            },
+            "step3": {
+                "gcd": 1,
+                "coeff_r1": 13,
+                "r1": 19,
+                "coeff_b": -6,
+                "b": 41
+            },
+            "step4": {
+                "gcd": 1,
+                "coeff_sub": 13,
+                "a": 60,
+                "coeff_b_inner": -1,
+                "coeff_b": -6,
+                "b": 41
+            },
+            "step5": {
+                "gcd": 1,
+                "s": 13,
+                "a": 60,
+                "t": -19,
+                "b": 41
+            }
+        }
+    },
+    {
+        "a": 99,
+        "b": 42,
+        "gcd": 3,
+        "divisions": [
+            {
+                "a": 99,
+                "b": 42,
+                "q": 2,
+                "r": 15
+            },
+            {
+                "a": 42,
+                "b_next": 15,
+                "q": 2,
+                "r": 12
+            },
+            {
+                "a": 15,
+                "b_next": 12,
+                "q": 1,
+                "r": 3
+            },
+            {
+                "a": 12,
+                "b_next": 3,
+                "q": 4,
+                "r": 0
+            }
+        ],
+        "extended": {
+            "step1": {
+                "gcd": 3,
+                "r1": 15,
+                "coeff_r2": -1,
+                "r2": 12
+            },
+            "step2": {
+                "gcd": 3,
+                "r1": 15,
+                "coeff_sub": -1,
+                "b": 42,
+                "coeff_r1_inner": -2
+            },
+            "step3": {
+                "gcd": 3,
+                "coeff_r1": 3,
+                "r1": 15,
+                "coeff_b": -1,
+                "b": 42
+            },
+            "step4": {
+                "gcd": 3,
+                "coeff_sub": 3,
+                "a": 99,
+                "coeff_b_inner": -2,
+                "coeff_b": -1,
+                "b": 42
+            },
+            "step5": {
+                "gcd": 3,
+                "s": 3,
+                "a": 99,
+                "t": -7,
+                "b": 42
+            }
+        }
+    }
+];
+    </script>
+    <script>
+        // Game state variables
+        let state = {
+            completedExercises: [],
+            score: 0,
+            streak: 0,
+            errors: 0,
+            currentExerciseIndex: 0,
+            exerciseOrder: [],
+            activePhase: 1, // 1, 2, or 3
+            activeRow: 0,   // index of current division / step
+            inputs: {},     // map of slotId -> string value
+            soundEnabled: true,
+            contrastExtreme: false,
+            baseFontSize: "16px"
+        };
 
-    // --- REINTENTOS Y REINICIOS ---
-    document.getElementById('gameover-retry-btn').addEventListener('click', () => {
-      lives = 3;
-      score = Math.max(0, score - 150);
-      startModule(currentModule);
-    });
+        // DOM elements
+        const dom = {
+            score: document.getElementById('score-val'),
+            streak: document.getElementById('streak-val'),
+            errors: document.getElementById('errors-val'),
+            progressLabel: document.getElementById('progress-label'),
+            progressPercent: document.getElementById('progress-percent'),
+            progressFill: document.getElementById('progress-fill'),
+            exerciseStatementText: document.getElementById('exercise-statement-text'),
+            exerciseFormulaEquation: document.getElementById('exercise-formula-equation'),
+            gameBoard: document.getElementById('game-board'),
+            actionBtn: document.getElementById('action-btn'),
+            resetExerciseBtn: document.getElementById('reset-exercise-btn'),
+            btnPool: document.getElementById('btn-pool'),
+            tabPhase1: document.getElementById('tab-phase1'),
+            tabPhase2: document.getElementById('tab-phase2'),
+            tabPhase3: document.getElementById('tab-phase3'),
+            welcomeModal: document.getElementById('welcome-modal'),
+            welcomeCloseBtn: document.getElementById('welcome-close-btn'),
+            completeModal: document.getElementById('complete-modal'),
+            completeCloseBtn: document.getElementById('complete-close-btn'),
+            finishModal: document.getElementById('finish-modal'),
+            finishResetBtn: document.getElementById('finish-reset-btn'),
+            toastAlert: document.getElementById('toast-alert'),
+            soundToggle: document.getElementById('sound-toggle'),
+            contrastToggle: document.getElementById('contrast-toggle'),
+            fontBtns: document.querySelectorAll('.font-btn'),
+            helpTrigger: document.getElementById('help-trigger')
+        };
 
-    document.getElementById('gameover-home-btn').addEventListener('click', () => {
-      lives = 3;
-      renderModules();
-      showScreen('modules');
-    });
+        // Active slot tracking
+        let activeSlotId = null;
 
-    document.getElementById('victory-restart-btn').addEventListener('click', () => {
-      lives = 3;
-      score = 0;
-      unlockedModules = [1];
-      document.getElementById('name-prompt').style.display = 'flex';
-      document.getElementById('diploma-display').style.display = 'none';
-      document.getElementById('player-name').value = '';
-      renderModules();
-      showScreen('modules');
-    });
+        // Initialize Audio context lazily
+        let audioCtx = null;
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                
+                const playTone = (freq, duration, typeOsc = 'sine', delay = 0) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = typeOsc;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+                    
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + duration);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(audioCtx.currentTime + delay);
+                    osc.stop(audioCtx.currentTime + delay + duration);
+                };
 
-    // --- GENERAR DIPLOMA ---
-    document.getElementById('btn-generate-diploma').addEventListener('click', () => {
-      const nameInput = document.getElementById('player-name').value.trim();
-      const playerName = nameInput || "Gran Calculista Modular";
-      
-      document.getElementById('diploma-player-name').innerText = playerName;
-      document.getElementById('diploma-display').style.display = 'block';
-      document.getElementById('name-prompt').style.display = 'none';
-      
-      playTone(550, 'sine', 0.15);
-      setTimeout(() => playTone(660, 'sine', 0.25), 150);
-    });
-  </script>
+                if (type === 'correct') {
+                    playTone(523.25, 0.1, 'sine', 0); // C5
+                    playTone(659.25, 0.1, 'sine', 0.08); // E5
+                    playTone(783.99, 0.15, 'sine', 0.16); // G5
+                } else if (type === 'error') {
+                    playTone(180, 0.25, 'triangle', 0); // F3 low
+                    playTone(150, 0.3, 'triangle', 0.1); // D3 low
+                } else if (type === 'victory') {
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        playTone(freq, 0.15, 'sine', idx * 0.1);
+                    });
+                }
+            } catch (e) {
+                console.error("Audio error", e);
+            }
+        }
+
+        // Web Vibration API helper
+        function vibrate(pattern) {
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // Show Toast
+        function showToast(text, isError = false) {
+            dom.toastAlert.textContent = text;
+            if (isError) {
+                dom.toastAlert.classList.add('toast-error');
+            } else {
+                dom.toastAlert.classList.remove('toast-error');
+            }
+            dom.toastAlert.classList.add('show');
+            setTimeout(() => {
+                dom.toastAlert.classList.remove('show');
+            }, 1800);
+        }
+
+        // Shuffle utility
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Save State
+        function saveState() {
+            localStorage.setItem('euclides_game_state', JSON.stringify(state));
+        }
+
+        // Load State
+        function loadState() {
+            const saved = localStorage.getItem('euclides_game_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed };
+                    
+                    // Apply loaded visual configurations
+                    document.body.classList.toggle('contrast-extreme', state.contrastExtreme);
+                    dom.contrastToggle.classList.toggle('active', state.contrastExtreme);
+                    
+                    if (state.soundEnabled) {
+                        dom.soundToggle.textContent = "🔊";
+                        dom.soundToggle.title = "Sonido Activo";
+                    } else {
+                        dom.soundToggle.textContent = "🔇";
+                        dom.soundToggle.title = "Sonido Silenciado";
+                    }
+                    
+                    document.documentElement.style.setProperty('--base-font-size', state.baseFontSize);
+                    dom.fontBtns.forEach(btn => {
+                        btn.classList.toggle('active', btn.getAttribute('data-sz') === state.baseFontSize);
+                    });
+                } catch (e) {
+                    console.error("Error loading state", e);
+                    initNewGame();
+                }
+            } else {
+                initNewGame();
+            }
+        }
+
+        // Init new session
+        function initNewGame() {
+            state.completedExercises = [];
+            state.score = 0;
+            state.streak = 0;
+            state.errors = 0;
+            state.currentExerciseIndex = 0;
+            
+            // Create shuffled exercise indices
+            const indices = [];
+            for (let i = 0; i < EXERCISES.length; i++) {
+                indices.push(i);
+            }
+            state.exerciseOrder = shuffleArray(indices);
+            
+            resetToPhase(1);
+            saveState();
+        }
+
+        // Reset state for current exercise phase
+        function resetToPhase(phase) {
+            state.activePhase = phase;
+            state.activeRow = 0;
+            state.inputs = {};
+            activeSlotId = null;
+            updateTabs();
+            renderGameBoard();
+            renderButtonPool();
+            updateActionBtn();
+        }
+
+        // Get current exercise object
+        function getCurrentExercise() {
+            const idx = state.exerciseOrder[state.currentExerciseIndex];
+            return EXERCISES[idx];
+        }
+
+        // Update progress indicators
+        function updateProgress() {
+            const total = EXERCISES.length;
+            const current = state.currentExerciseIndex + 1;
+            dom.progressLabel.textContent = `Ejercicio ${current} de ${total}`;
+            const pct = Math.round((state.currentExerciseIndex / total) * 100);
+            dom.progressPercent.textContent = `${pct}%`;
+            dom.progressFill.style.width = `${pct}%`;
+            
+            dom.score.textContent = state.score;
+            dom.streak.textContent = `🔥 ${state.streak}`;
+            dom.errors.textContent = state.errors;
+        }
+
+        // Update phase tabs indicators
+        function updateTabs() {
+            const tabs = [dom.tabPhase1, dom.tabPhase2, dom.tabPhase3];
+            tabs.forEach((tab, idx) => {
+                const phaseNum = idx + 1;
+                tab.className = 'phase-tab';
+                if (state.activePhase === phaseNum) {
+                    tab.classList.add('active');
+                } else if (state.activePhase > phaseNum) {
+                    tab.classList.add('completed');
+                }
+            });
+        }
+
+        // Render prompt and equation
+        function updatePromptCard() {
+            const ex = getCurrentExercise();
+            dom.exerciseStatementText.innerHTML = `Calcula el $mcd(${ex.a}, ${ex.b})$ usando el algoritmo de Euclides y encuentra los enteros $s$ y $t$ tales que:`;
+            dom.exerciseFormulaEquation.textContent = `s · ${ex.a} + t · ${ex.b} = ${ex.gcd}`;
+        }
+
+        // Helper to generate slot html
+        function createSlotHTML(phase, row, key, placeholder, expectedVal) {
+            const slotId = `${phase}_${row}_${key}`;
+            const filledVal = state.inputs[slotId] || '';
+            const isFilled = filledVal !== '';
+            
+            // Check if this slot was already validated as correct
+            // (e.g. if the row is smaller than current activeRow)
+            let classes = ['slot'];
+            if (isFilled) classes.push('filled');
+            if (activeSlotId === slotId) classes.push('active');
+            
+            if (phase === state.activePhase && row < state.activeRow) {
+                classes.push('correct');
+            } else if (state.inputs[slotId + '_status'] === 'correct') {
+                classes.push('correct');
+            } else if (state.inputs[slotId + '_status'] === 'incorrect') {
+                classes.push('incorrect');
+            }
+            
+            // Make slot active if it is the first empty slot in active row and no slot is active
+            return `<span class="${classes.join(' ')}" id="${slotId}" data-placeholder="${placeholder}" data-expected="${expectedVal}" onclick="selectSlot('${slotId}')">${filledVal}</span>`;
+        }
+
+        // Select slot
+        window.selectSlot = function(slotId) {
+            // Can only select slots in the active row/phase
+            const [phase, rowStr, key] = slotId.split('_');
+            const row = parseInt(rowStr);
+            
+            if (parseInt(phase) !== state.activePhase) return;
+            
+            // For phase 1: row is 0..3, and we have mcd step at row 4
+            // For phase 2: row is 0..4
+            if (row !== state.activeRow) return;
+            
+            // If already correct, cannot edit
+            if (state.inputs[slotId + '_status'] === 'correct') return;
+            
+            // Clear slot if tapped and filled
+            if (state.inputs[slotId]) {
+                state.inputs[slotId] = '';
+                delete state.inputs[slotId + '_status'];
+                playSound('clear');
+            }
+            
+            activeSlotId = slotId;
+            renderGameBoard();
+            updateActionBtn();
+        };
+
+        // Render active board based on Phase
+        function renderGameBoard() {
+            const ex = getCurrentExercise();
+            let html = '';
+            
+            if (state.activePhase === 1) {
+                html += `<div class="phase-section">`;
+                
+                // 4 division lines
+                for (let r = 0; r < 4; r++) {
+                    const activeClass = (r === state.activeRow) ? 'active' : '';
+                    const lockedClass = (r < state.activeRow) ? 'locked' : '';
+                    const div = ex.divisions[r];
+                    
+                    // Division equation: left = right1 * right2 + right3
+                    // E.g. A = B * q + r
+                    let leftPlaceholder = (r === 0) ? 'A' : (r === 1) ? 'B' : `r${r-1}`;
+                    let right1Placeholder = (r === 0) ? 'B' : `r${r}`;
+                    let qPlaceholder = `q${r+1}`;
+                    let rPlaceholder = r === 3 ? '0' : `r${r+1}`;
+                    
+                    html += `
+                    <div class="equation-row ${activeClass} ${lockedClass}">
+                        ${createSlotHTML(1, r, 'left', leftPlaceholder, div.a)}
+                        <span class="text-symbol">=</span>
+                        ${createSlotHTML(1, r, 'r1', right1Placeholder, div.b || div.b_next)}
+                        <span class="text-symbol">·</span>
+                        ${createSlotHTML(1, r, 'q', qPlaceholder, div.q)}
+                        <span class="text-symbol">+</span>
+                        ${createSlotHTML(1, r, 'r', rPlaceholder, div.r)}
+                    </div>`;
+                }
+                
+                // MCD indicator at the bottom
+                const mcdActive = (state.activeRow === 4) ? 'active' : '';
+                html += `
+                <div class="mcd-conclusion ${mcdActive}">
+                    <span class="text-symbol">mcd(${ex.a}, ${ex.b}) =</span>
+                    ${createSlotHTML(1, 4, 'mcd', 'mcd', ex.gcd)}
+                </div>`;
+                
+                html += `</div>`;
+            } else if (state.activePhase === 2) {
+                html += `<div class="phase-section">`;
+                const steps = ex.extended;
+                
+                // Step 1: gcd = r1 + (coeff_r2) * r2
+                {
+                    const r = 0;
+                    const activeClass = (r === state.activeRow) ? 'active' : '';
+                    const lockedClass = (r < state.activeRow) ? 'locked' : '';
+                    html += `
+                    <div class="equation-row ${activeClass} ${lockedClass}">
+                        <span class="text-symbol">${steps.step1.gcd} =</span>
+                        ${createSlotHTML(2, r, 'r1', `r1`, steps.step1.r1)}
+                        <span class="text-symbol">+ (</span>
+                        ${createSlotHTML(2, r, 'coeff_r2', `coeff`, steps.step1.coeff_r2)}
+                        <span class="text-symbol">) ·</span>
+                        ${createSlotHTML(2, r, 'r2', `r2`, steps.step1.r2)}
+                    </div>`;
+                }
+
+                // Step 2: substitute r2 = b + (coeff_r1_inner) * r1
+                {
+                    const r = 1;
+                    const activeClass = (r === state.activeRow) ? 'active' : '';
+                    const lockedClass = (r < state.activeRow) ? 'locked' : '';
+                    html += `
+                    <div class="equation-row ${activeClass} ${lockedClass}">
+                        <span class="text-symbol">${steps.step2.gcd} =</span>
+                        ${createSlotHTML(2, r, 'r1', `r1`, steps.step2.r1)}
+                        <span class="text-symbol">+ (</span>
+                        ${createSlotHTML(2, r, 'coeff_sub', `coeff`, steps.step2.coeff_sub)}
+                        <span class="text-symbol">) · (</span>
+                        ${createSlotHTML(2, r, 'b', `B`, steps.step2.b)}
+                        <span class="text-symbol">+ (</span>
+                        ${createSlotHTML(2, r, 'coeff_r1_inner', `coeff`, steps.step2.coeff_r1_inner)}
+                        <span class="text-symbol">) ·</span>
+                        ${createSlotHTML(2, r, 'r1_inner', `r1`, steps.step2.r1)}
+                        <span class="text-symbol">)</span>
+                    </div>`;
+                }
+
+                // Step 3: group r1 and b
+                {
+                    const r = 2;
+                    const activeClass = (r === state.activeRow) ? 'active' : '';
+                    const lockedClass = (r < state.activeRow) ? 'locked' : '';
+                    html += `
+                    <div class="equation-row ${activeClass} ${lockedClass}">
+                        <span class="text-symbol">${steps.step3.gcd} =</span>
+                        ${createSlotHTML(2, r, 'coeff_r1', `coeff`, steps.step3.coeff_r1)}
+                        <span class="text-symbol">·</span>
+                        ${createSlotHTML(2, r, 'r1', `r1`, steps.step3.r1)}
+                        <span class="text-symbol">+ (</span>
+                        ${createSlotHTML(2, r, 'coeff_b', `coeff`, steps.step3.coeff_b)}
+                        <span class="text-symbol">) ·</span>
+                        ${createSlotHTML(2, r, 'b', `B`, steps.step3.b)}
+                    </div>`;
+                }
+
+                // Step 4: substitute r1 = a + (coeff_b_inner) * b
+                {
+                    const r = 3;
+                    const activeClass = (r === state.activeRow) ? 'active' : '';
+                    const lockedClass = (r < state.activeRow) ? 'locked' : '';
+                    html += `
+                    <div class="equation-row ${activeClass} ${lockedClass}">
+                        <span class="text-symbol">${steps.step4.gcd} =</span>
+                        ${createSlotHTML(2, r, 'coeff_sub', `coeff`, steps.step4.coeff_sub)}
+                        <span class="text-symbol">· (</span>
+                        ${createSlotHTML(2, r, 'a', `A`, steps.step4.a)}
+                        <span class="text-symbol">+ (</span>
+                        ${createSlotHTML(2, r, 'coeff_b_inner', `coeff`, steps.step4.coeff_b_inner)}
+                        <span class="text-symbol">) ·</span>
+                        ${createSlotHTML(2, r, 'b_inner', `B`, steps.step4.b)}
+                        <span class="text-symbol">) + (</span>
+                        ${createSlotHTML(2, r, 'coeff_b', `coeff`, steps.step4.coeff_b)}
+                        <span class="text-symbol">) ·</span>
+                        ${createSlotHTML(2, r, 'b', `B`, steps.step4.b)}
+                    </div>`;
+                }
+
+                // Step 5: final group
+                {
+                    const r = 4;
+                    const activeClass = (r === state.activeRow) ? 'active' : '';
+                    const lockedClass = (r < state.activeRow) ? 'locked' : '';
+                    html += `
+                    <div class="equation-row ${activeClass} ${lockedClass}">
+                        <span class="text-symbol">${steps.step5.gcd} =</span>
+                        ${createSlotHTML(2, r, 's', `s`, steps.step5.s)}
+                        <span class="text-symbol">·</span>
+                        ${createSlotHTML(2, r, 'a', `A`, steps.step5.a)}
+                        <span class="text-symbol">+ (</span>
+                        ${createSlotHTML(2, r, 't', `t`, steps.step5.t)}
+                        <span class="text-symbol">) ·</span>
+                        ${createSlotHTML(2, r, 'b', `B`, steps.step5.b)}
+                    </div>`;
+                }
+
+                html += `</div>`;
+            } else if (state.activePhase === 3) {
+                html += `<div class="phase-section">`;
+                const r = 0;
+                
+                html += `
+                <div class="equation-row active" style="flex-direction: column; align-items: flex-start; gap: 0.8rem; font-size: 1.3rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span class="text-symbol">s =</span>
+                        ${createSlotHTML(3, r, 's', 's', ex.extended.step5.s)}
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span class="text-symbol">t =</span>
+                        ${createSlotHTML(3, r, 't', 't', ex.extended.step5.t)}
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span class="text-symbol">mcd(${ex.a}, ${ex.b}) =</span>
+                        ${createSlotHTML(3, r, 'gcd', 'mcd', ex.gcd)}
+                    </div>
+                </div>`;
+                
+                html += `</div>`;
+            }
+            
+            dom.gameBoard.innerHTML = html;
+            
+            // Automatically select first slot in active row if no slot is active
+            autoSelectNextSlot();
+        }
+
+        // Select the first empty slot in the active row/phase
+        function autoSelectNextSlot() {
+            // Find all slot elements on the board for the active phase and row
+            const slotElements = dom.gameBoard.querySelectorAll(`.slot[id^="${state.activePhase}_${state.activeRow}_"]`);
+            let foundActive = false;
+            
+            // Check if any slot is currently active
+            for (let el of slotElements) {
+                if (el.classList.contains('active')) {
+                    foundActive = true;
+                    activeSlotId = el.id;
+                    break;
+                }
+            }
+            
+            // If none active, find first empty
+            if (!foundActive) {
+                for (let el of slotElements) {
+                    const slotId = el.id;
+                    if (!state.inputs[slotId] && state.inputs[slotId + '_status'] !== 'correct') {
+                        activeSlotId = slotId;
+                        el.classList.add('active');
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Render keyboard button pool
+        function renderButtonPool() {
+            const ex = getCurrentExercise();
+            let numbers = new Set();
+            
+            // Add elements based on active phase to make it reasonable
+            // We include numbers involved in current exercise:
+            // divisions elements
+            ex.divisions.forEach(d => {
+                numbers.add(d.a);
+                if (d.b) numbers.add(d.b);
+                if (d.b_next) numbers.add(d.b_next);
+                numbers.add(d.q);
+                numbers.add(d.r);
+            });
+            numbers.add(0);
+            numbers.add(ex.gcd);
+            
+            // Add extended coefficients (both positive and negative)
+            const steps = ex.extended;
+            numbers.add(steps.step1.coeff_r2);
+            numbers.add(steps.step2.coeff_sub);
+            numbers.add(steps.step2.coeff_r1_inner);
+            numbers.add(steps.step3.coeff_r1);
+            numbers.add(steps.step3.coeff_b);
+            numbers.add(steps.step4.coeff_sub);
+            numbers.add(steps.step4.coeff_b_inner);
+            numbers.add(steps.step5.s);
+            numbers.add(steps.step5.t);
+            
+            // Filter set and convert to array
+            let numArr = Array.from(numbers).map(n => parseInt(n));
+            
+            // Sort them, remove duplicates
+            numArr = numArr.filter((val, idx, self) => self.indexOf(val) === idx);
+            numArr.sort((x, y) => x - y);
+            
+            // Build buttons html
+            let html = '';
+            numArr.forEach(num => {
+                html += `<button class="num-btn" onclick="pressNum(${num})">${num}</button>`;
+            });
+            
+            dom.btnPool.innerHTML = html;
+        }
+
+        // Handle typing button
+        window.pressNum = function(num) {
+            if (!activeSlotId) return;
+            
+            // Fill active slot
+            state.inputs[activeSlotId] = num.toString();
+            // Clear incorrect status if we change it
+            delete state.inputs[activeSlotId + '_status'];
+            
+            // Remove active class from current slot
+            const currSlot = document.getElementById(activeSlotId);
+            if (currSlot) {
+                currSlot.textContent = num.toString();
+                currSlot.classList.add('filled');
+                currSlot.classList.remove('active');
+            }
+            
+            // Advance activeSlotId to next empty slot in row
+            const slotElements = dom.gameBoard.querySelectorAll(`.slot[id^="${state.activePhase}_${state.activeRow}_"]`);
+            let nextSlotSelected = false;
+            
+            for (let el of slotElements) {
+                const sId = el.id;
+                if (!state.inputs[sId] && sId !== activeSlotId) {
+                    activeSlotId = sId;
+                    el.classList.add('active');
+                    nextSlotSelected = true;
+                    break;
+                }
+            }
+            
+            if (!nextSlotSelected) {
+                // If all slots are filled in this row, clear active selection
+                activeSlotId = null;
+            }
+            
+            renderGameBoard();
+            updateActionBtn();
+        };
+
+        // Enable or disable Check button
+        function updateActionBtn() {
+            // Check if all slots in active row are filled
+            const activeSlots = dom.gameBoard.querySelectorAll(`.slot[id^="${state.activePhase}_${state.activeRow}_"]`);
+            let allFilled = true;
+            
+            activeSlots.forEach(el => {
+                const val = state.inputs[el.id];
+                if (val === undefined || val === '') {
+                    allFilled = false;
+                }
+            });
+            
+            dom.actionBtn.disabled = !allFilled;
+        }
+
+        // Validate current row
+        function checkActiveRow() {
+            const activeSlots = dom.gameBoard.querySelectorAll(`.slot[id^="${state.activePhase}_${state.activeRow}_"]`);
+            let allCorrect = true;
+            let wrongSlots = [];
+            
+            activeSlots.forEach(el => {
+                const filledVal = state.inputs[el.id];
+                const expectedVal = el.getAttribute('data-expected');
+                
+                // Compare integer values
+                if (parseInt(filledVal) !== parseInt(expectedVal)) {
+                    allCorrect = false;
+                    wrongSlots.push(el.id);
+                    state.inputs[el.id + '_status'] = 'incorrect';
+                } else {
+                    state.inputs[el.id + '_status'] = 'correct';
+                }
+            });
+            
+            if (allCorrect) {
+                playSound('correct');
+                showToast("¡Correcto!");
+                
+                // Increment active row
+                if (state.activePhase === 1) {
+                    // Phase 1 has 4 division lines (row 0 to 3) + 1 gcd conclusion (row 4)
+                    if (state.activeRow < 4) {
+                        state.activeRow++;
+                    } else {
+                        // Finished phase 1! Advance to phase 2
+                        setTimeout(() => {
+                            resetToPhase(2);
+                            showToast("¡Fase 1 Completada! Iniciando Fase 2.");
+                        }, 800);
+                        saveState();
+                        return;
+                    }
+                } else if (state.activePhase === 2) {
+                    // Phase 2 has 5 steps (row 0 to 4)
+                    if (state.activeRow < 4) {
+                        state.activeRow++;
+                    } else {
+                        // Finished phase 2! Advance to phase 3
+                        setTimeout(() => {
+                            resetToPhase(3);
+                            showToast("¡Fase 2 Completada! Iniciando Fase 3.");
+                        }, 800);
+                        saveState();
+                        return;
+                    }
+                } else if (state.activePhase === 3) {
+                    // Finished the exercise!
+                    state.score += 100;
+                    state.streak++;
+                    state.completedExercises.push(state.exerciseOrder[state.currentExerciseIndex]);
+                    saveState();
+                    
+                    playSound('victory');
+                    showCompleteModal();
+                    return;
+                }
+                
+                activeSlotId = null;
+                renderGameBoard();
+                updateActionBtn();
+                saveState();
+            } else {
+                playSound('error');
+                vibrate([150, 100, 150]);
+                showToast("Inténtalo de nuevo", true);
+                state.score = Math.max(0, state.score - 5);
+                state.streak = 0;
+                state.errors++;
+                updateProgress();
+                
+                // Render to show red border
+                renderGameBoard();
+                updateActionBtn();
+                saveState();
+            }
+        }
+
+        // Show completed modal
+        function showCompleteModal() {
+            document.getElementById('earned-points-text').textContent = "+100";
+            dom.completeModal.classList.add('open');
+        }
+
+        // Handle next exercise or game completion
+        function nextExercise() {
+            dom.completeModal.classList.remove('open');
+            
+            state.currentExerciseIndex++;
+            if (state.currentExerciseIndex >= EXERCISES.length) {
+                // Game completely finished!
+                document.getElementById('final-score-text').textContent = state.score;
+                document.getElementById('final-errors-text').textContent = state.errors;
+                dom.finishModal.classList.add('open');
+            } else {
+                resetToPhase(1);
+                updatePromptCard();
+                updateProgress();
+                saveState();
+            }
+        }
+
+        // Event listeners
+        dom.actionBtn.addEventListener('click', checkActiveRow);
+        dom.welcomeCloseBtn.addEventListener('click', () => {
+            dom.welcomeModal.classList.remove('open');
+            // Init audio context on first user click
+            if (state.soundEnabled) {
+                playSound('correct');
+            }
+        });
+        dom.completeCloseBtn.addEventListener('click', nextExercise);
+        dom.finishResetBtn.addEventListener('click', () => {
+            dom.finishModal.classList.remove('open');
+            initNewGame();
+            updatePromptCard();
+            updateProgress();
+        });
+
+        // Reset exercise
+        dom.resetExerciseBtn.addEventListener('click', () => {
+            if (confirm("¿Estás seguro de que quieres reiniciar este ejercicio? Perderás el progreso de las fases actuales.")) {
+                resetToPhase(1);
+            }
+        });
+
+        // Sound toggle
+        dom.soundToggle.addEventListener('click', () => {
+            state.soundEnabled = !state.soundEnabled;
+            if (state.soundEnabled) {
+                dom.soundToggle.textContent = "🔊";
+                dom.soundToggle.title = "Sonido Activo";
+                playSound('correct');
+            } else {
+                dom.soundToggle.textContent = "🔇";
+                dom.soundToggle.title = "Sonido Silenciado";
+            }
+            saveState();
+        });
+
+        // Contrast toggle
+        dom.contrastToggle.addEventListener('click', () => {
+            state.contrastExtreme = !state.contrastExtreme;
+            document.body.classList.toggle('contrast-extreme', state.contrastExtreme);
+            dom.contrastToggle.classList.toggle('active', state.contrastExtreme);
+            saveState();
+        });
+
+        // Help triggers
+        dom.helpTrigger.addEventListener('click', () => {
+            dom.welcomeModal.classList.add('open');
+        });
+
+        // Font resizer
+        dom.fontBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                dom.fontBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const sz = btn.getAttribute('data-sz');
+                state.baseFontSize = sz;
+                document.documentElement.style.setProperty('--base-font-size', sz);
+                saveState();
+            });
+        });
+
+        // Start Up
+        window.addEventListener('load', () => {
+            loadState();
+            
+            // Check if new session
+            if (state.exerciseOrder.length === 0 || state.currentExerciseIndex >= EXERCISES.length) {
+                initNewGame();
+            }
+            
+            updatePromptCard();
+            updateProgress();
+            updateTabs();
+            renderGameBoard();
+            renderButtonPool();
+            
+            // Show welcome modal if brand new game
+            if (state.score === 0 && state.errors === 0 && state.completedExercises.length === 0) {
+                dom.welcomeModal.classList.add('open');
+            }
+        });
+    </script>
 </body>
 </html>
