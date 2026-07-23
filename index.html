@@ -716,6 +716,47 @@
             border-color: var(--error-color);
         }
 
+        /* Reference panel styles */
+        .reference-panel {
+            background: #050505;
+            border: 1px dashed var(--card-border);
+            border-radius: 12px;
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+        body.contrast-extreme .reference-panel {
+            border: 2px solid #ffffff;
+            background: #000000;
+        }
+        .reference-panel-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 0.3rem;
+            margin-bottom: 0.2rem;
+        }
+        body.contrast-extreme .reference-panel-title {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+        .reference-equation {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            color: #888888;
+            text-align: center;
+        }
+        body.contrast-extreme .reference-equation {
+            color: #ffffff;
+        }
+
         /* Help screen list styles */
         .help-step {
             background: #070707;
@@ -2888,6 +2929,18 @@
         function renderGameBoard() {
             const ex = getCurrentExercise();
             let html = '';
+            
+            if (state.activePhase === 2 || state.activePhase === 3) {
+                html += `<div class="reference-panel">`;
+                html += `<div class="reference-panel-title">Fase 1: Divisiones de Referencia</div>`;
+                ex.divisions.forEach((div, idx) => {
+                    const nextVal = div.b || div.b_next;
+                    const lastRemainder = idx === 3 ? '0' : div.r;
+                    html += `<div class="reference-equation">${div.a} = ${nextVal} · ${div.q} + ${lastRemainder}</div>`;
+                });
+                html += `<div class="reference-equation" style="border-top: 1px dashed var(--card-border); margin-top: 0.3rem; padding-top: 0.3rem; font-weight: bold; color: var(--accent-light);">mcd(${ex.a}, ${ex.b}) = ${ex.gcd}</div>`;
+                html += `</div>`;
+            }
             
             if (state.activePhase === 1) {
                 html += `<div class="phase-section">`;
